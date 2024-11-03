@@ -1,0 +1,31 @@
+{
+	"name": "codelabs-backend",
+	"version": "1.0.0",
+	"main": "index.js",
+	"scripts": {
+		"build": "npx tsc",
+		"start": "node dist/index.js",
+		"dev": "ts-node-dev src/index.ts"
+	},
+	"author": "Aman Tiwari",
+	"license": "ISC",
+	"description": "",
+	"dependencies": {
+		"cors": "^2.8.5",
+		"dotenv": "^16.4.5",
+		"express": "^4.21.1",
+		"firebase": "^11.0.1",
+		"firebase-admin": "^12.7.0",
+		"mongodb": "^6.10.0",
+		"mongoose": "^8.8.0",
+		"nodemon": "^3.1.7"
+	},
+	"devDependencies": {
+		"@types/cors": "^2.8.17",
+		"@types/express": "^5.0.0",
+		"@types/firebase": "^2.4.32",
+		"@types/mongoose": "^5.11.96",
+		"ts-node-dev": "^2.0.0",
+		"typescript": "^5.6.3"
+	}
+}
