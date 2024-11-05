@@ -5,7 +5,7 @@
 	"scripts": {
 		"build": "npx tsc",
 		"start": "node dist/index.js",
-		"dev": "ts-node-dev src/index.ts"
+		"dev": "ts-node-dev -r dotenv/config src/index.ts"
 	},
 	"author": "Aman Tiwari",
 	"license": "ISC",
@@ -18,7 +18,8 @@
 		"firebase-admin": "^12.7.0",
 		"mongodb": "^6.10.0",
 		"mongoose": "^8.8.0",
-		"nodemon": "^3.1.7"
+		"nodemon": "^3.1.7",
+		"socket.io": "^4.8.1"
 	},
 	"devDependencies": {
 		"@types/cors": "^2.8.17",

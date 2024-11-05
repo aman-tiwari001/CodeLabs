@@ -15,7 +15,3 @@ export const initializeProject = async (req: Request, res: Response) => {
 		res.status(500).json({ message: 'Internal server error' });
 	}
 };
-
-export const testFunc = async (req: Request, res: Response) => {
-	res.status(200).send('Welcome to the CodeLabs 🚀');
-};

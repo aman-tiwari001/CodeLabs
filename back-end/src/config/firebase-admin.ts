@@ -1,6 +1,8 @@
 import admin from 'firebase-admin';
 import { initializeApp, ServiceAccount } from 'firebase-admin/app';
 import serviceAccount from './fb_secrets.json';
+import path from 'path';
+import fs from 'fs';
 
 const firebaseConfig = {
 	apiKey: process.env.apiKey,
@@ -41,13 +43,13 @@ export const copyFolderInBucket = async (
 		// List files in the source folder including those in subdirectories
 		const [files] = await bucket.getFiles({ prefix: sourceFolder });
 		let fileCount = 0;
-		console.log('here are files : ', files);
 
 		// Copy each file to the new destination while preserving the folder structure
 		const copyPromises = files.map(async (file) => {
 			// destination file path by replacing the source folder prefix
 			const destinationFilePath =
 				destinationFolder + file.name.substring(sourceFolder.length);
+			console.log('destinationFilePath : ', destinationFilePath);
 			await file.copy(bucket.file(destinationFilePath));
 			fileCount++;
 			console.log(`Copied ${file.name} to ${destinationFilePath}`);
@@ -59,3 +61,30 @@ export const copyFolderInBucket = async (
 		console.error('Error copying files:', error);
 	}
 };
+
+export async function downloadFile(filePath: string, localFilePath: string) {
+	await bucket.file(filePath).download({ destination: localFilePath });
+	console.log(`Downloaded: ${filePath} -> ${localFilePath}`);
+}
+
+// Function to download entire directory structure
+export async function fetchAndDownloadFolder(
+	remoteDir: string,
+	localDir: string
+) {
+	const [files] = await bucket.getFiles({ prefix: remoteDir });
+
+	for (const file of files) {
+		const filePath = file.name;
+		const relativeFilePath = filePath.substring(remoteDir.length); // Get relative path
+		const localFilePath = path.join(localDir, relativeFilePath);
+
+		// If it's a file (not a directory), download it
+		if (!filePath.endsWith('/')) {
+			fs.mkdirSync(path.dirname(localFilePath), { recursive: true });
+			await downloadFile(filePath, localFilePath);
+		} else { // if it is directory, create the empry dir
+			fs.mkdirSync(localFilePath, { recursive: true });
+		}
+	}
+}
