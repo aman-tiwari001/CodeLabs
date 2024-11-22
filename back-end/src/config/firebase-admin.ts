@@ -19,7 +19,7 @@ const app = initializeApp(firebaseConfig);
 
 const bucket = admin.storage().bucket();
 
-export const copyFilesInBucket = async (
+export const copyFileInBucket = async (
 	sourcePath: string,
 	destinationPath: string
 ) => {

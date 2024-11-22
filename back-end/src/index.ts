@@ -2,7 +2,7 @@ import cors from 'cors';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
 import express, { Request, Response } from 'express';
-import { initializeProject } from './controller/project';
+import { fetchFileContent, fetchFolderStructure, initializeProject } from './controller/project';
 import { fetchAndDownloadFolder } from './config/firebase-admin';
 
 const app = express();
@@ -29,14 +29,19 @@ app.get('/', (req: Request, res: Response) => {
 
 app.post('/api/create-project', initializeProject);
 
+app.post('/api/fetch-file', fetchFileContent);
+
 io.on('connection', async (socket) => {
 	const projectId = socket.handshake.query.projectId;
-    console.log('projectId : ', projectId);
-	const res = await fetchAndDownloadFolder(
-		`${projectId}`,
-		`./user-projects/${projectId}`
-	);
-    console.log('res : ', res);
+	await fetchAndDownloadFolder(`${projectId}`, `./user-projects/${projectId}`);
+	socket.emit('folder-structure', {
+		structure: await fetchFolderStructure(`./user-projects/${projectId}`),
+	});
+	socket.on('fetch-folder-contents', async (folderPath: string) => {
+		socket.emit('folder-contents', {
+			folder: await fetchFolderStructure(folderPath),
+		});
+	});
 });
 
 httpServer.listen(port, () => {
