@@ -68,23 +68,42 @@ export async function downloadFile(filePath: string, localFilePath: string) {
 }
 
 // Function to download entire directory structure
-export async function fetchAndDownloadFolder(
+export const fetchAndDownloadFolder = async (
 	remoteDir: string,
 	localDir: string
-) {
-	const [files] = await bucket.getFiles({ prefix: remoteDir });
+) => {
+	try {
+		const [files] = await bucket.getFiles({ prefix: remoteDir });
 
-	for (const file of files) {
-		const filePath = file.name;
-		const relativeFilePath = filePath.substring(remoteDir.length); // Get relative path
-		const localFilePath = path.join(localDir, relativeFilePath);
+		for (const file of files) {
+			const filePath = file.name;
+			const relativeFilePath = filePath.substring(remoteDir.length); // Get relative path
+			const localFilePath = path.join(localDir, relativeFilePath);
 
-		// If it's a file (not a directory), download it
-		if (!filePath.endsWith('/')) {
-			fs.mkdirSync(path.dirname(localFilePath), { recursive: true });
-			await downloadFile(filePath, localFilePath);
-		} else { // if it is directory, create the empry dir
-			fs.mkdirSync(localFilePath, { recursive: true });
+			// If it's a file (not a directory), download it
+			if (!filePath.endsWith('/')) {
+				fs.mkdirSync(path.dirname(localFilePath), { recursive: true });
+				await downloadFile(filePath, localFilePath);
+			} else {
+				// if it is directory, create the empry dir
+				fs.mkdirSync(localFilePath, { recursive: true });
+			}
 		}
+	} catch (error) {
+		console.error('Error downloading folder:', error);
 	}
-}
+};
+
+export const updateContentOnStorageBucket = async (
+	projectId: string,
+	filePath: string
+) => {
+	// Update content in the storage bucket
+	try {
+		await bucket.upload(filePath, {
+			destination: `${projectId}/${path.basename(filePath)}`,
+		});
+	} catch (error) {
+		console.error('Error updating content on storage bucket:', error);
+	}
+};

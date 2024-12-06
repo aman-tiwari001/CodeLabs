@@ -17,7 +17,7 @@ export const initializeProject = async (req: Request, res: Response) => {
 	}
 };
 
-export const fetchFolderStructure = async (sourcePath: string) => {
+export const fetchFolderStructure = (sourcePath: string) => {
 	return new Promise((resolve, reject) => {
 		fs.readdir(sourcePath, { withFileTypes: true }, (err, files) => {
 			if (err) {
@@ -36,13 +36,27 @@ export const fetchFolderStructure = async (sourcePath: string) => {
 	});
 };
 
-export const fetchFileContent = async (req: Request, res: Response) => {
+export const fetchFileContent = (filePath: string) => {
 	try {
-		const { filePath } = req.body;
-		const fileContent = fs.readFileSync(filePath, 'utf-8');
-		res.status(200).json({ content: fileContent });
+		const fileContent = fs.readFileSync(filePath, 'utf8');
+		return fileContent;
 	} catch (error) {
 		console.error('Error fetching file content:', error);
-		res.status(500).json({ message: 'Internal server error' });
 	}
+};
+
+export const updateContentOnServer = (
+	filePath: string,
+	content: string
+) => {
+	// Update content in the server
+	return new Promise((resolve, reject) => {
+		fs.writeFile(filePath, content, (err) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve('File content updated successfully');
+			}
+		});
+	});
 };
