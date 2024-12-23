@@ -1,18 +1,31 @@
-import axios from 'axios';
+import axiosInstance from './axios-config';
 
-export interface UserDataType {
+export interface UserType {
 	name: string;
 	email: string;
 	picture: string;
 	sub: string;
+	authToken: string;
 }
 
-export const syncUserWithDB = async (userData: UserDataType) => {
-	const res = await axios.post(import.meta.env.VITE_SERVER_URL+'/api/auth', userData, {
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: localStorage.getItem('token'),
-		},
+export interface ProjectType {
+	name: string;
+	techStack: string;
+}
+
+export const syncUserWithDB = async (userData: UserType) => {
+	const res = await axiosInstance.post('/api/auth', userData, {
+		headers: { Authorization: 'Bearer ' + userData.authToken },
 	});
+	return res.data;
+};
+
+export const createProject = async (projectData: ProjectType) => {
+	const res = await axiosInstance.post('/api/create-project', projectData);
+	return res.data;
+};
+
+export const getAllProjects = async () => {
+	const res = await axiosInstance.get('/api/get-projects');
 	return res.data;
 };

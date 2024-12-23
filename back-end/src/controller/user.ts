@@ -13,7 +13,7 @@ export const handleAuth = async (req: Request, res: Response) => {
       return;
     }
 
-		//check if user exist
+		// check if user exist
 		const user = await User.findOne({ email });
 		if (!user) {
 			const newUser = await User.create({ name, email, picture, sub });
@@ -30,7 +30,7 @@ export const handleAuth = async (req: Request, res: Response) => {
 			result: user,
 		});
 	} catch (error: any) {
-		console.log('Error regsitering user', error);
+		console.log('Error registering user', error);
 		res.status(500).json({
 			success: false,
 			message: error.message,

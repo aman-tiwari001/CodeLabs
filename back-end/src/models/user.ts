@@ -1,6 +1,14 @@
 import mongoose from 'mongoose';
 
-const UserSchema = new mongoose.Schema({
+export interface UserType {
+	name: string;
+	email: string;
+	picture: string;
+	sub: string;
+	projects: [{ name: string; techStack: string; createdAt: Date }];
+}
+
+const UserSchema = new mongoose.Schema<UserType>({
 	name: {
 		type: String,
 		required: true,
@@ -21,12 +29,15 @@ const UserSchema = new mongoose.Schema({
 	},
 	projects: [
 		{
-			projectId: {
+			name: {
 				type: String,
 				required: true,
-				unique: true,
 			},
-			techstack: String,
+			techStack: {
+				type: String,
+				enum: ['React', 'Node', 'Express', 'MERN', 'NextJS'],
+			},
+			createdAt: Date,
 		},
 	],
 });
