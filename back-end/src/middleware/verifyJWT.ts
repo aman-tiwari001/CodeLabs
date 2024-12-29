@@ -3,9 +3,9 @@ import { decode, verify } from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
 
 declare module 'express-serve-static-core' {
-  interface Request {
-	user?: any;
-  }
+	interface Request {
+		user?: any;
+	}
 }
 
 const client = jwksClient({
@@ -30,10 +30,43 @@ export const verifyJWT = async (
 		const token =
 			req.cookies.auth_token || req.headers.authorization?.split(' ')[1];
 		if (!token) {
+			const cookies = req.cookies;
+			if (cookies) {
+				Object.keys(cookies).forEach((cookieName) => {
+					res.clearCookie(cookieName);
+				});
+			}
 			res.status(400).json({ success: false, message: 'Token not provided' });
 			return;
 		}
-		console.log("cookies  - ",req.cookies)
+		const header = decode(token, { complete: true })?.header;
+		console.log('decoded header : ', header);
+		const auth0key = await getAuth0Key(header);
+		const decoded = verify(token, auth0key, {
+			algorithms: ['RS256'],
+			// audience :,
+			issuer: 'https://' + process.env.AUTH0_DOMAIN + '/',
+		});
+		req.user = decoded;
+		console.log('decoded user : ', decoded);
+		next();
+	} catch (error: any) {
+		console.log('Invalid token', error);
+		const cookies = req.cookies;
+		if (cookies) {
+			Object.keys(cookies).forEach((cookieName) => {
+				res.clearCookie(cookieName);
+			});
+		}
+		res.status(500).json({ success: false, message: error.message });
+	}
+};
+
+export const verifyJWTForSocket = async (token: string) => {
+	try {
+		if (!token) {
+			return false;
+		}
 		const header = decode(token, { complete: true })?.header;
 		console.log('decoded token header - ', header);
 		const auth0key = await getAuth0Key(header);
@@ -43,11 +76,11 @@ export const verifyJWT = async (
 			// audience :,
 			issuer: 'https://' + process.env.AUTH0_DOMAIN + '/',
 		});
-		req.user = decoded;
 		console.log('decoded : ', decoded);
-		next();
+		console.log('socket token verified');
+		return { success: true, user: decoded };
 	} catch (error: any) {
 		console.log('Invalid token', error);
-		res.status(500).json({ success: false, message: error.message });
+		return false;
 	}
 };

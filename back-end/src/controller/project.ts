@@ -18,7 +18,7 @@ export const initializeProject = async (req: Request, res: Response) => {
 			return;
 		}
 		const projectExists = await User.findOne({
-			projects: { $elemMatch: { name: name } },
+			projects: { $elemMatch: { name } },
 		});
 		if (projectExists) {
 			res.status(400).json({
@@ -29,7 +29,8 @@ export const initializeProject = async (req: Request, res: Response) => {
 		}
 		user?.projects.push({ name, techStack, createdAt: new Date() });
 		await user?.save();
-		await copyFolderInBucket(`base/${techStack}`, `${name}`);
+		console.log("inside api route handler - ", req.user)
+		await copyFolderInBucket(`base/${techStack}`, `${req.user.email}/${name}`);
 		res
 			.status(200)
 			.json({ success: true, message: 'Project initialized successfully' });

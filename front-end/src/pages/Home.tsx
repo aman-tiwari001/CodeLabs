@@ -1,35 +1,14 @@
 import { useEffect, useState } from 'react';
-import { io } from 'socket.io-client';
-import { useAuth0 } from '@auth0/auth0-react';
-import Skeleton from 'react-loading-skeleton';
-import axios, { create } from 'axios';
-import { div } from 'framer-motion/client';
 import CreateProject from '../components/CreateProject';
-import toast from 'react-hot-toast';
-import { getAllProjects } from '../api/user';
+import { getAllProjects, ProjectType } from '../api/user';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
-	// const { isAuthenticated, user, isLoading } = useAuth0();
-	// const projectId = 'msi365';
-	// useEffect(() => {
-	// 	const socket = io(`http://localhost:5000?projectId=${projectId}`);
-	// 	socket.on('connect', () => {
-	// 		console.log('Connected to the server');
-	// 	});
-	// 	socket.on('folder-structure', (data) => {
-	// 		console.log('Str ', data);
-	// 	});
-	// 	return () => {
-	// 		socket.disconnect();
-	// 		console.log('Disconnected from the server');
-	// 	};
-	// }, []);
-
 	const techStack: {
 		[key in 'React' | 'Node' | 'Express' | 'MERN' | 'NextJS']: string;
 	} = {
 		React:
-			'https://media2.dev.to/dynamic/image/width=1080,height=1080,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F096baapsqqt9fks0us99.png',
+			'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1150px-React-icon.svg.png',
 		Node: 'https://images.seeklogo.com/logo-png/27/1/node-js-logo-png_seeklogo-273749.png?v=1957362420476283968',
 		Express:
 			'https://w7.pngwing.com/pngs/925/447/png-transparent-express-js-node-js-javascript-mongodb-node-js-text-trademark-logo.png',
@@ -53,7 +32,7 @@ const Home = () => {
 
 	useEffect(() => {
 		fetchProjects();
-	}, []);
+	}, [showCreateProject]);
 
 	return (
 		<main className='mt-24 px-10'>
@@ -61,8 +40,11 @@ const Home = () => {
 				<h2 className='text-3xl mb-7'>Your Projects</h2>
 				<div className='flex flex-wrap gap-10 items-center justify-start'>
 					<div
-						className='flex flex-col items-center justify-start cursor-pointer bg-gray-100 hover:gradient p-2 rounded-xl text-black w-[170px] h-[190px]'
-						onClick={() => setShowCreateProject(true)}
+						className='flex flex-col items-center justify-center cursor-pointer bg-white hover:gradient p-2 rounded-xl text-black w-[170px] h-[210px]'
+						onClick={() => {
+							document.body.style.overflow = 'hidden';
+							setShowCreateProject(true);
+						}}
 					>
 						<img
 							src={'/folder.png'}
@@ -71,20 +53,36 @@ const Home = () => {
 						/>
 						<h3 className='font-medium'>Create New Project</h3>
 					</div>
-					{projects.map((project) => {
+					{projects.map((project: ProjectType) => {
 						return (
-							<div
+							<Link
+								className='no-underline text-white hover:text-white'
 								key={project.name}
-								className='flex flex-col items-center justify-start gradient bg-gray-200 hover:scale-110 duration-300 cursor-pointer p-2 rounded-xl w-[170px] h-[190px]'
+								to={`/project/${project.name}`}
 							>
-								<img
-									src={techStack[project.techStack as keyof typeof techStack]}
-									className='bg-white rounded-lg h-32 w-32 object-cover'
-									alt='project logo'
-								/>
-								<h3 className='font-medium'>{project.name.slice(0, 21)}</h3>
-								<p>{project.createAt}</p>
-							</div>
+								<div
+									key={project.name}
+									className='gradient bg-gray-200 hover:scale-110 duration-300 cursor-pointer p-2 rounded-xl w-[170px] h-[210px]'
+								>
+									<img
+										src={techStack[project.techStack as keyof typeof techStack]}
+										className='bg-white rounded-lg h-32 object-cover w-full'
+										alt='project logo'
+									/>
+									<div className='mx-auto'>
+										<h3 className='font-medium'>
+											{project.name.slice(0, 21)}
+											<br />
+										</h3>
+										<span className='bg-black rounded-md px-1 text-sm'>
+											#{project.techStack}
+										</span>
+										<p className='text-sm text-gray-200'>
+											{new Date(project.createdAt).toDateString()}
+										</p>
+									</div>
+								</div>
+							</Link>
 						);
 					})}
 				</div>

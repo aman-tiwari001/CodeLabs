@@ -4,12 +4,12 @@ import { syncUserWithDB } from '../api/user';
 import { useAuth0 } from '@auth0/auth0-react';
 import { BiCloud, BiFolder, BiTerminal } from 'react-icons/bi';
 import { GrTechnology } from 'react-icons/gr';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 const LandingPage = () => {
-	const { loginWithPopup, getIdTokenClaims } = useAuth0();
+	const { loginWithPopup, getIdTokenClaims, isAuthenticated } = useAuth0();
 	const navigate = useNavigate();
-	
+
 	const handleLogin = async () => {
 		try {
 			console.log('hey in side this func');
@@ -29,6 +29,10 @@ const LandingPage = () => {
 			console.log(error);
 		}
 	};
+
+	if (isAuthenticated) {
+		return <Navigate to='/home' />;
+	}
 
 	return (
 		<main className='w-full flex flex-col min-h-screen'>

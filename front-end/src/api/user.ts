@@ -11,6 +11,7 @@ export interface UserType {
 export interface ProjectType {
 	name: string;
 	techStack: string;
+	createdAt: Date;
 }
 
 export const syncUserWithDB = async (userData: UserType) => {

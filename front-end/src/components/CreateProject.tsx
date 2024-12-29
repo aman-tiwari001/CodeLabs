@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { createProject } from '../api/user';
 import toast from 'react-hot-toast';
 import { AxiosError } from 'axios';
+import { motion } from 'framer-motion';
 
 interface CreateProjectProps {
 	showCreateProject: boolean;
@@ -22,20 +23,29 @@ const CreateProject = ({ setShowCreateProject }: CreateProjectProps) => {
 			await createProject(projectData);
 			toast.success('Project created');
 			setShowCreateProject(false);
-		} catch (error : AxiosError) {
+		} catch (error: AxiosError) {
 			console.log(error);
 			toast.error(error?.response.data.message);
 		} finally {
 			setLoading(false);
+			document.body.style.overflow = 'auto';
 		}
 	};
 	return (
 		<section className='absolute z-10 top-0 left-0 w-screen backdrop-brightness-50 flex justify-center items-center h-screen '>
-			<div className='rounded-xl shadow-md p-4 px-6 w-[40%] bg-gray-800 '>
+			<motion.div
+				className='rounded-xl shadow-md p-4 px-6 w-[40%] max-md:w-[95%] bg-gray-800 '
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.3 }}
+			>
 				<h2 className='text-3xl mb-7 flex justify-between'>
 					Create new project{' '}
 					<span
-						onClick={() => setShowCreateProject(false)}
+						onClick={() => {
+							document.body.style.overflow = 'auto';
+							setShowCreateProject(false);
+						}}
 						className='hover:text-gray-400 cursor-pointer'
 					>
 						X
@@ -90,7 +100,7 @@ const CreateProject = ({ setShowCreateProject }: CreateProjectProps) => {
 						)}
 					</button>
 				</form>
-			</div>
+			</motion.div>
 		</section>
 	);
 };

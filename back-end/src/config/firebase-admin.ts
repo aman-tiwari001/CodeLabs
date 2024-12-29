@@ -99,9 +99,10 @@ export const updateContentOnStorageBucket = async (
 	filePath: string
 ) => {
 	// Update content in the storage bucket
+	console.log('Updating content on storage bucket:', filePath.slice(16));
 	try {
 		await bucket.upload(filePath, {
-			destination: `${projectId}/${path.basename(filePath)}`,
+			destination: filePath.slice(16),
 		});
 	} catch (error) {
 		console.error('Error updating content on storage bucket:', error);
