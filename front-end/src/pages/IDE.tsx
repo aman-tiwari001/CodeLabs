@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { DirectoryExplorer } from '../components/DirectoryExplorer';
 import { CodeEditor } from '../components/CodeEditor';
@@ -10,38 +10,49 @@ import { parseFileStructure, updateFileNodeChildren } from '../utils/helper';
 import useSocketStore from '../store/socketStore';
 import { useAuth0 } from '@auth0/auth0-react';
 import toast from 'react-hot-toast';
-import { debounce, set } from 'lodash';
+import { debounce } from 'lodash';
 
 const IDE = () => {
 	const { logout } = useAuth0();
+
 	const [tabs, setTabs] = useState<Tab[]>([]);
 	const [activeTab, setActiveTab] = useState<Tab | null>(null);
+	const [updatingFile, setUpdatingFile] = useState<boolean>(false);
+	const [fetchingDirContents, setFetchingDirContents] =
+		useState<boolean>(false);
+	const [fetchingFileContents, setFetchingFileContents] =
+		useState<boolean>(false);
 
-	const [fetchingDirContents, setFetchingDirContents] = useState(false);
-	const [fetchingFileContents, setFetchingFileContents] = useState(false);
-	const [updatingFile, setUpdatingFile] = useState(false);
-
-	const addFile = () => {};
-
-	const setFiles = useFileStore((state) => state.setFiles);
 	const files = useFileStore((state) => state.files);
-
-	const setSocket = useSocketStore((state) => state.setSocket);
+	const setFiles = useFileStore((state) => state.setFiles);
 	const socket = useSocketStore((state) => state.socket);
+	const setSocket = useSocketStore((state) => state.setSocket);
 
-	const handleFileSelect = async (file: FileNode) => {
-		if (file.type === 'file') {
-			const existingTab = tabs.find((tab) => tab.id === file.id);
-			if (!existingTab) {
-				const newTab: Tab = {
-					id: file.id,
-					name: file.name,
-					content: '',
-					path: file.path,
-				};
-				setTabs([...tabs, newTab]);
-				setActiveTab(newTab);
-			}
+	const addFile = (node: FileNode, type: string, name: string) => {
+		if (type === 'file') {
+			const children: FileNode[] = [
+				{
+					id: name,
+					name,
+					type: 'file',
+					path: node.path + '/' + name,
+				},
+			];
+			console.log('Add file', children);
+			const updatedStr = updateFileNodeChildren(files, node.path, children);
+			setFiles(updatedStr);
+		} else {
+			const children: FileNode[] = [
+				{
+					id: name,
+					name,
+					type: 'dir',
+					path: node.path + '/' + name,
+				},
+			];
+			console.log('Add file', children);
+			const updatedStr = updateFileNodeChildren(files, node.path, children);
+			setFiles(updatedStr);
 		}
 	};
 
@@ -95,22 +106,35 @@ const IDE = () => {
 	};
 
 	const fetchFileContents = (node: FileNode) => {
+		const file = node;
+		const existingTab = tabs.find((tab) => tab.id === file.id);
+
 		if (!node.content) {
-			setFetchingFileContents(true);
 			setFetchingFileContents(true);
 			socket.emit(
 				'fetch-file-content',
 				node.path,
 				(data: { content: string }) => {
-					console.log('fetched file contents', data);
 					setFetchingFileContents(false);
-					setActiveTab({ ...node, content: data.content });
-					setFetchingDirContents(false);
-					return data.content;
+					setActiveTab({
+						id: node.id,
+						name: node.name,
+						content: data.content,
+						path: node.path,
+					});
+					if (!existingTab)
+						setTabs([
+							...tabs,
+							{
+								id: node.id,
+								name: node.name,
+								content: data.content,
+								path: node.path,
+							},
+						]);
 				}
 			);
 		}
-		// return '';
 	};
 
 	useEffect(() => {
@@ -138,7 +162,11 @@ const IDE = () => {
 			newSocket.disconnect();
 			console.log('Disconnected from the server');
 		};
-	}, [setFiles, setSocket]);
+	}, [setFiles, setSocket, logout]);
+
+	useEffect(() => {
+		return () => debouncedEmit.cancel?.();
+	}, [debouncedEmit]);
 
 	return (
 		<div className='h-screen pt-16 overflow-hidden bg-gray-900 text-white'>
@@ -148,7 +176,6 @@ const IDE = () => {
 						<Panel defaultSize={20} minSize={15}>
 							<DirectoryExplorer
 								files={files}
-								onFileSelect={handleFileSelect}
 								onAddFile={addFile}
 								fetchDirContents={fetchDirContents}
 								fetchFileContents={fetchFileContents}
@@ -160,7 +187,10 @@ const IDE = () => {
 							<CodeEditor
 								tabs={tabs}
 								activeTab={activeTab}
-								onTabChange={setActiveTab}
+								onTabChange={(tab: Tab) => {
+									console.log(tab);
+									setActiveTab(tab);
+								}}
 								onTabClose={handleTabClose}
 								onContentChange={handleContentChange}
 								fetchingFileContents={fetchingFileContents}

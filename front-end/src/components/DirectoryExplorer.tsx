@@ -4,15 +4,14 @@ import {
 	FileIcon,
 	ChevronDownIcon,
 	ChevronRightIcon,
-	PlusIcon,
 } from 'lucide-react';
 import { FileNode } from '../types';
 import Skeleton from 'react-loading-skeleton';
+import { VscNewFile } from 'react-icons/vsc';
 
 interface Props {
 	files: FileNode[];
-	onFileSelect: (file: FileNode) => void;
-	onAddFile: (parentId: string, isDirectory: boolean) => void;
+	onAddFile: (node: FileNode, type: string, name: string) => void;
 	fetchDirContents: (node: FileNode) => void;
 	fetchFileContents: (node: FileNode) => void;
 	fetchingDirContents: boolean;
@@ -21,17 +20,23 @@ interface Props {
 const FileTreeNode: React.FC<{
 	node: FileNode;
 	depth: number;
-	onSelect: (file: FileNode) => void;
-	onAddFile: (parentId: string, isDirectory: boolean) => void;
+	onAddFile: (node: FileNode, type: string, name: string) => void;
 	fetchDirContents: (node: FileNode) => void;
 	fetchFileContents: (node: FileNode) => void;
 	fetchingDirContents: boolean;
-}> = ({ node, depth, onSelect, onAddFile, fetchDirContents, fetchFileContents, fetchingDirContents }) => {
+}> = ({
+	node,
+	depth,
+	onAddFile,
+	fetchDirContents,
+	fetchFileContents,
+	fetchingDirContents,
+}) => {
 	const [isOpen, setIsOpen] = useState(node.isOpen || false);
 	const [showActions, setShowActions] = useState(false);
 
 	return (
-		<div>
+		<div id={node.id}>
 			<div
 				className='flex items-center group hover:bg-gray-700/50 py-1 px-2 cursor-pointer text-gray-300'
 				style={{ paddingLeft: `${depth * 1.2}rem` }}
@@ -42,7 +47,6 @@ const FileTreeNode: React.FC<{
 						fetchDirContents(node);
 						setIsOpen(!isOpen);
 					} else {
-						onSelect(node);
 						fetchFileContents(node);
 					}
 				}}
@@ -64,16 +68,32 @@ const FileTreeNode: React.FC<{
 						<button
 							onClick={(e) => {
 								e.stopPropagation();
-								onAddFile(node.id, false);
+								const parentNode = document.getElementById(node.id);
+								const input = document.createElement('input');
+								input.placeholder = 'Enter file name';
+								input.className = 'input-new-file';
+								parentNode?.appendChild(input);
+								input.onkeydown = (e) => {
+									if (e.key === 'Enter') input.style.display = 'none';
+									onAddFile(node, 'file', input.value);
+								};
 							}}
 							className='p-1 hover:bg-gray-600 rounded'
 						>
-							<PlusIcon size={12} />
+							<VscNewFile size={12} />
 						</button>
 						<button
 							onClick={(e) => {
 								e.stopPropagation();
-								onAddFile(node.id, true);
+								const parentNode = document.getElementById(node.id);
+								const input = document.createElement('input');
+								input.placeholder = 'Enter directory name';
+								input.className = 'input-new-file';
+								parentNode?.appendChild(input);
+								input.onkeydown = (e) => {
+									if (e.key === 'Enter') input.style.display = 'none';
+									onAddFile(node, 'dir', input.value);
+								};
 							}}
 							className='p-1 hover:bg-gray-600 rounded'
 						>
@@ -82,14 +102,22 @@ const FileTreeNode: React.FC<{
 					</div>
 				)}
 			</div>
-			{isOpen && fetchingDirContents && <Skeleton count={2} height={15} baseColor='#6366f1' highlightColor='#dbb4ff' width={190} className='mx-4' />}
+			{isOpen && fetchingDirContents && (
+				<Skeleton
+					count={2}
+					height={15}
+					baseColor='#6366f1'
+					highlightColor='#dbb4ff'
+					width={190}
+					className='mx-4'
+				/>
+			)}
 			{isOpen &&
 				node.children?.map((child) => (
 					<FileTreeNode
 						key={child.id}
 						node={child}
 						depth={depth + 1}
-						onSelect={onSelect}
 						onAddFile={onAddFile}
 						fetchDirContents={fetchDirContents}
 						fetchFileContents={fetchFileContents}
@@ -102,11 +130,10 @@ const FileTreeNode: React.FC<{
 
 export const DirectoryExplorer: React.FC<Props> = ({
 	files,
-	onFileSelect,
 	onAddFile,
 	fetchDirContents,
 	fetchFileContents,
-	fetchingDirContents
+	fetchingDirContents,
 }) => {
 	return (
 		<div className='h-full bg-gray-900 border-r border-gray-700 overflow-hidden flex flex-col'>
@@ -119,7 +146,6 @@ export const DirectoryExplorer: React.FC<Props> = ({
 						key={node.id}
 						node={node}
 						depth={0}
-						onSelect={onFileSelect}
 						onAddFile={onAddFile}
 						fetchDirContents={fetchDirContents}
 						fetchFileContents={fetchFileContents}

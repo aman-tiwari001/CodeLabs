@@ -78,6 +78,7 @@ export const fetchFileContent = (filePath: string) => {
 		return fileContent;
 	} catch (error) {
 		console.error('Error fetching file content:', error);
+		return null;
 	}
 };
 

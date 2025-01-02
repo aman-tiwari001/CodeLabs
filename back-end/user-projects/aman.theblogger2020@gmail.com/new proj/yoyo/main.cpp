@@ -9,6 +9,8 @@
 #include <cctype>
 #include <stdexcept>
 
+// checking code feasibility
+
 class User {
 private:
     std::string name;

@@ -33,10 +33,9 @@ export const EditorContent: React.FC<Props> = ({
 					<textarea
 						value={content}
 						onChange={(e) => onChange(e.target.value)}
-						className='flex-1 bg-gray-900 text-gray-300 p-4 resize-none focus:outline-none overflow-auto duration-100 transit'
+						className='flex-1 bg-gray-900 text-gray-300 p-4 text-lg resize-none focus:outline-none overflow-auto duration-100 transit'
 						spellCheck={false}
 						style={{ lineHeight: '1.5' }}
-						placeholder='Start writing your code here...'
 					/>
 				)}
 			</div>

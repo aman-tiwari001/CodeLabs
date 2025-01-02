@@ -5,6 +5,6 @@ contract FavoriteNumber {
     uint256 public favoriteNumber;
 
     function setFavoriteNumber(uint256 _number) public {
-        favoriteNumber = _number;
+        favoriteNumber = _number; //testing
     }
 }

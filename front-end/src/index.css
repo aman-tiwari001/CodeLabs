@@ -66,3 +66,14 @@ button:focus-visible {
 .gradient {
 	@apply bg-gradient-to-r from-indigo-500 to-purple-600;
 }
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: gray #111827 ;
+	scroll-behavior: smooth;
+	border-radius: 5px;
+}
+
+.input-new-file {
+	@apply bg-gray-800 text-white p-1 rounded-md text-sm mx-4;
+}

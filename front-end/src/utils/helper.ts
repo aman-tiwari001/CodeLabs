@@ -51,7 +51,7 @@ export const updateFileNodeChildren = (
 ): FileNode[] => {
 	return fileNodes.map((node) => {
 		if (node.path === path) {
-			return { ...node, children, isOpen: true }; // Update children and mark as open
+			return { ...node, children: [...(node.children || []), ...children], isOpen: true }; // Update children and mark as open
 		}
 		if (node.children) {
 			return {
