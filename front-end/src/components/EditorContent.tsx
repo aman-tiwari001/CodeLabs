@@ -18,7 +18,7 @@ export const EditorContent: React.FC<Props> = ({
 		<div className='flex-1 relative font-mono text-sm'>
 			<div className='absolute inset-0 flex'>
 				{/* Line Numbers */}
-				<div className='flex-none w-7 py-4 bg-gray-800 text-gray-500 text-right select-none'>
+				<div className='flex-none w-7 py-4 bg-gray-900 text-gray-500 text-right select-none'>
 					{lines.map((_, i) => (
 						<div key={i} className='px-2'>
 							{i + 1}
@@ -33,7 +33,7 @@ export const EditorContent: React.FC<Props> = ({
 					<textarea
 						value={content}
 						onChange={(e) => onChange(e.target.value)}
-						className='flex-1 bg-gray-900 text-gray-300 p-4 text-lg resize-none focus:outline-none overflow-auto duration-100 transit'
+						className='flex-1 bg-gray-950 text-gray-300 p-4 text-lg resize-none focus:outline-none overflow-auto duration-100 transit'
 						spellCheck={false}
 						style={{ lineHeight: '1.5' }}
 					/>

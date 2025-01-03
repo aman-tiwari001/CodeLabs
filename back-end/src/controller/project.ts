@@ -2,6 +2,7 @@ import fs from 'fs';
 import { Request, Response } from 'express';
 import { copyFolderInBucket } from '../config/firebase-admin';
 import User from '../models/user';
+import path from 'path';
 
 export const initializeProject = async (req: Request, res: Response) => {
 	try {
@@ -29,7 +30,7 @@ export const initializeProject = async (req: Request, res: Response) => {
 		}
 		user?.projects.push({ name, techStack, createdAt: new Date() });
 		await user?.save();
-		console.log("inside api route handler - ", req.user)
+		console.log('inside api route handler - ', req.user);
 		await copyFolderInBucket(`base/${techStack}`, `${req.user.email}/${name}`);
 		res
 			.status(200)
@@ -85,12 +86,21 @@ export const fetchFileContent = (filePath: string) => {
 export const updateContentOnServer = (filePath: string, content: string) => {
 	// Update content in the server
 	return new Promise((resolve, reject) => {
-		fs.writeFile(filePath, content, (err) => {
+		const dir = path.dirname(filePath); // Extract the folder path
+		// Ensure the directory exists
+		fs.mkdir(dir, { recursive: true }, (err) => {
 			if (err) {
-				reject(err);
-			} else {
-				resolve('File content updated successfully');
+				return reject(err);
 			}
+
+			// Write the file
+			fs.writeFile(filePath, content, (err) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve('File content updated successfully');
+				}
+			});
 		});
 	});
 };

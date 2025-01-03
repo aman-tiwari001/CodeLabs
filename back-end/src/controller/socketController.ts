@@ -2,6 +2,7 @@ import {
 	fetchAndDownloadFolder,
 	updateContentOnStorageBucket,
 } from '../config/firebase-admin';
+import { ContainerManager, validateCommand } from '../docker/containerManager';
 import { verifyJWTForSocket } from '../middleware/verifyJWT';
 import { UserType } from '../models/user';
 import {
@@ -9,6 +10,7 @@ import {
 	fetchFolderStructure,
 	updateContentOnServer,
 } from './project';
+import fs from 'fs';
 
 export const socketController = async (socket: any) => {
 	const projectId = socket.handshake.query.projectId;
@@ -21,25 +23,35 @@ export const socketController = async (socket: any) => {
 		: {};
 
 	console.log('Parsed cookies : ', parsedCookies);
-
 	const verifyRes = await verifyJWTForSocket(parsedCookies.auth_token);
 
+	let userEmail: string;
 	if (verifyRes) {
-		const user = verifyRes.user as UserType;
+		userEmail = (verifyRes.user as UserType).email;
 		await fetchAndDownloadFolder(
-			`${user.email}/${projectId}`,
-			`./user-projects/${user.email}/${projectId}`
+			`${userEmail}/${projectId}`,
+			`./user-projects/${userEmail}/${projectId}`
 		);
 		socket.emit('folder-structure', {
 			structure: await fetchFolderStructure(
-				`./user-projects/${user.email}/${projectId}`
+				`./user-projects/${userEmail}/${projectId}`
 			),
 		});
+		
 	} else {
 		console.log('Invalid token in socket');
 		socket.emit('auth-error', { msg: 'Invalid token' });
 		socket.disconnect();
+		return;
 	}
+
+	// Creating a docker container for the user
+	const containerManager = new ContainerManager();
+	const container = await containerManager.createContainer(
+		userEmail,
+		projectId
+	);
+	await container.start();
 
 	socket.on(
 		'fetch-folder-contents',
@@ -65,4 +77,34 @@ export const socketController = async (socket: any) => {
 			callback({ message: 'File content updated successfully' });
 		}
 	);
+
+	socket.on('execute-command', async (command: string, callback: Function) => {
+		console.log('Command received: ', command);
+		if (!validateCommand(command)) {
+			callback('Error: Command not allowed');
+			return;
+		}
+
+		try {
+			const stream = await containerManager.executeCommand(container, command);
+
+			// Stream output back to client
+			stream.on('data', (chunk) => {
+				callback(chunk.toString());
+			});
+
+			stream.on('end', () => {
+				callback('\r\n');
+			});
+		} catch (err: any) {
+			callback(`Error: ${err.message}`);
+		}
+	});
+
+	socket.on('disconnect', async (reason: string) => {
+		console.log(`Socket disconnected: ${reason}`);
+		// clean ups
+		await container.stop();
+		fs.rmSync(`./user-projects/${userEmail}`, { recursive: true });
+	});
 };

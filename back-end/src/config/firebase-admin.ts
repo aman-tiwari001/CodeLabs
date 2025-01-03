@@ -85,7 +85,7 @@ export const fetchAndDownloadFolder = async (
 				fs.mkdirSync(path.dirname(localFilePath), { recursive: true });
 				await downloadFile(filePath, localFilePath);
 			} else {
-				// if it is directory, create the empry dir
+				// if it is directory, create the empty dir
 				fs.mkdirSync(localFilePath, { recursive: true });
 			}
 		}

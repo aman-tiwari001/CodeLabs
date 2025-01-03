@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { DirectoryExplorer } from '../components/DirectoryExplorer';
 import { CodeEditor } from '../components/CodeEditor';
-import { Terminal } from '../components/Terminal';
+import { CodeTerminal } from '../components/Terminal';
 import { Tab, FileNode } from '../types';
 import { io } from 'socket.io-client';
 import useFileStore from '../store/fileStore';
@@ -173,7 +173,7 @@ const IDE = () => {
 			<PanelGroup direction='vertical'>
 				<Panel defaultSize={80} className='overflow-hidden'>
 					<PanelGroup direction='horizontal'>
-						<Panel defaultSize={20} minSize={15}>
+						<Panel defaultSize={15} minSize={15}>
 							<DirectoryExplorer
 								files={files}
 								onAddFile={addFile}
@@ -201,7 +201,7 @@ const IDE = () => {
 				</Panel>
 				<PanelResizeHandle className='h-1 bg-gray-700 hover:bg-blue-500 transition-colors' />
 				<Panel defaultSize={20} minSize={10}>
-					<Terminal />
+					<CodeTerminal />
 				</Panel>
 			</PanelGroup>
 		</div>

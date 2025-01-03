@@ -1,49 +1,64 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Terminal as TerminalIcon } from 'lucide-react';
+import { Terminal } from 'xterm';
+import { WebLinksAddon } from 'xterm-addon-web-links';
+import { FitAddon } from 'xterm-addon-fit';
+import 'xterm/css/xterm.css';
+import useSocketStore from '../store/socketStore';
 
-export const Terminal: React.FC = () => {
-  const [commands, setCommands] = useState<string[]>(['npm run dev']);
-  const [currentCommand, setCurrentCommand] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const commandsEndRef = useRef<HTMLDivElement>(null);
+export const CodeTerminal: React.FC = () => {
+	// const [currentCommand, setCurrentCommand] = useState('');
+	const terminalRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    commandsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [commands]);
+	const socket = useSocketStore((state) => state.socket);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      setCommands([...commands, currentCommand]);
-      setCurrentCommand('');
-    }
-  };
+	useEffect(() => {
+		const term = new Terminal({
+			cursorBlink: true,
+			fontSize: 17,
+			theme: {
+				background: '#000000',
+				foreground: '#ffffff',
+			},
+			lineHeight: 1.2,
+		});
+		const fitAddon = new FitAddon();
+		const webLinksAddon = new WebLinksAddon();
+		term.loadAddon(fitAddon);
+		term.loadAddon(webLinksAddon);
 
-  return (
-    <div className="bg-gray-900 border-t border-gray-700 flex flex-col">
-      <div className="flex items-center p-2 border-b border-gray-700">
-        <TerminalIcon size={16} className="mr-2 text-gray-400" />
-        <span className="text-sm text-gray-400">Terminal</span>
-      </div>
-      <div className="p-2 font-mono text-sm text-gray-300 overflow-y-auto flex-1">
-        {commands.map((cmd, i) => (
-          <div key={i} className="mb-1">
-            <span className="text-green-500">➜</span> {cmd}
-          </div>
-        ))}
-        <div className="flex items-center" onClick={() => inputRef.current?.focus()}>
-          <span className="text-green-500 mr-2">➜</span>
-          <input
-            ref={inputRef}
-            type="text"
-            value={currentCommand}
-            onChange={(e) => setCurrentCommand(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="bg-transparent outline-none flex-1"
-            placeholder="Enter command..."
-          />
-        </div>
-        <div ref={commandsEndRef} />
-      </div>
-    </div>
-  );
+		term.open(terminalRef.current);
+		fitAddon.fit();
+		term.write('>_ ');
+		let currentCommand = '';
+		term.onData((data) => {
+			console.log('term ', data);
+			if (data !== '\r' && data !== '\u007F') currentCommand += data;
+			term.write(data);
+			if (data === '\r') {
+				term.write('\n');
+				console.log('currentCommand', currentCommand);
+				socket.emit('execute-command', currentCommand, (res: string) => {
+					term.writeln(res.toString());
+					currentCommand = '';
+					term.write('>_ ');
+				});
+			} else if (data === '\u007F') {
+				term.write('\b \b');
+			}
+		});
+
+		return () => {
+			term.dispose();
+		};
+	}, [socket]);
+
+	return (
+		<div ref={terminalRef} className='w-full h-full py-4 px-1 bg-black'>
+			<h2 className='text-white flex gap-1 mb-2 border-b rounded-none pb-1 pl-1 font-semibold'>
+				{' '}
+				<TerminalIcon /> TERMINAL
+			</h2>
+		</div>
+	);
 };
