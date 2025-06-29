@@ -30,7 +30,6 @@ export const initializeProject = async (req: Request, res: Response) => {
 		}
 		user?.projects.push({ name, techStack, createdAt: new Date() });
 		await user?.save();
-		console.log('inside api route handler - ', req.user);
 		await copyFolderInBucket(`base/${techStack}`, `${req.user.email}/${name}`);
 		res
 			.status(200)

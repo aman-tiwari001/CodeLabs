@@ -1,4 +1,5 @@
 import Docker from 'dockerode';
+import path from 'path';
 
 const docker = new Docker();
 
@@ -11,6 +12,8 @@ const ALLOWED_COMMANDS = [
 	'cd',
 	'mkdir',
 	'touch',
+	'ls',
+	'cat'
 ];
 
 // Validate command
@@ -23,15 +26,20 @@ export function validateCommand(cmd: string) {
 // Container manager
 export class ContainerManager {
 	async createContainer(userEmail: string, projectId: string) {
+		const projPath = path
+			.join(__dirname, '../../user-projects', userEmail, projectId)
+			.replace(/\\/g, '/');
+		console.log('Project path : ', projPath);
 		return await docker.createContainer({
 			Image: 'node:latest',
 			Cmd: ['/bin/bash'],
-			Tty: true, 
-			WorkingDir: `/user-projects/${userEmail}/${projectId}`,
+			Tty: true,
+			WorkingDir: `/${projectId}`,
 			HostConfig: {
+				Binds: [`${projPath}:/${projectId}`],
 				Memory: 512 * 1024 * 1024, // 512MB limit
 				MemorySwap: 1024 * 1024 * 1024, // 1GB swap
-				NetworkMode: 'none', // Disable network access
+				NetworkMode: 'bridge', // Enable internet connection
 				AutoRemove: true,
 			},
 		});

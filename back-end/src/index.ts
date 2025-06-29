@@ -35,10 +35,6 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.get('/', (req: Request, res: Response) => {
-	// console.log(req.headers['user-agent'])
-	// console.log(req.headers['origin'])
-	// console.log(req.headers['referer'])
-	// console.log(req.headers['x-forwarded-for'], req.connection.remoteAddress)
 	res.status(200).send('Welcome to the CodeLabs 🚀');
 });
 app.post('/api/auth', verifyJWT, setCookie, handleAuth);

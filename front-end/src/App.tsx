@@ -4,8 +4,8 @@ import LandingPage from './pages/LandingPage';
 import Navbar from './components/Navbar';
 import { Toaster } from 'react-hot-toast';
 import IDE from './pages/IDE';
-import ProtectedRoutes from './components/ProtectedRoutes';
 import NotFound from './pages/NotFound';
+import { AuthenticationGuard } from './components/AuthenticationGuard';
 
 function App() {
 	return (
@@ -14,10 +14,14 @@ function App() {
 			<Navbar />
 			<Routes>
 				<Route path='/' element={<LandingPage />} />
-				<Route element={<ProtectedRoutes />}>
-					<Route path='/home' element={<Home />} />
-					<Route path='/project/:id' element={<IDE />} />
-				</Route>
+				<Route
+					path='/home'
+					element={<AuthenticationGuard component={Home} />}
+				/>
+				<Route
+					path='/project/:id'
+					element={<AuthenticationGuard component={IDE} />}
+				/>
 				<Route path='*' element={<NotFound />} />
 			</Routes>
 		</BrowserRouter>

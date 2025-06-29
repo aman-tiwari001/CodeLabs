@@ -15,14 +15,12 @@ import fs from 'fs';
 export const socketController = async (socket: any) => {
 	const projectId = socket.handshake.query.projectId;
 	const cookies = socket.handshake.headers.cookie;
-	console.log('Cookies from socket : ', cookies);
 	const parsedCookies = cookies
 		? Object.fromEntries(
 				cookies.split('; ').map((cookie: string) => cookie.split('='))
 		  )
 		: {};
 
-	console.log('Parsed cookies : ', parsedCookies);
 	const verifyRes = await verifyJWTForSocket(parsedCookies.auth_token);
 
 	let userEmail: string;
@@ -78,33 +76,36 @@ export const socketController = async (socket: any) => {
 		}
 	);
 
-	socket.on('execute-command', async (command: string, callback: Function) => {
+	socket.on('execute-command', async (command: string) => {
 		console.log('Command received: ', command);
 		if (!validateCommand(command)) {
-			callback('Error: Command not allowed');
+			socket.emit('command-output', 'Error: Command not allowed');
 			return;
 		}
 
 		try {
 			const stream = await containerManager.executeCommand(container, command);
-
 			// Stream output back to client
 			stream.on('data', (chunk) => {
-				callback(chunk.toString());
+				console.log('Chunk : ', chunk.toString());
+				// callback(chunk.toString());
+				socket.emit('command-output', chunk.toString());
 			});
 
 			stream.on('end', () => {
-				callback('\r\n');
+				console.log('Stream ended');
+				socket.emit('command-output', '\r');
 			});
 		} catch (err: any) {
-			callback(`Error: ${err.message}`);
+			console.log('term Error : ', err.message)
+			socket.emit('command-output', `Error: ${err.message}`);
 		}
 	});
 
 	socket.on('disconnect', async (reason: string) => {
 		console.log(`Socket disconnected: ${reason}`);
 		// clean ups
-		await container.stop();
-		fs.rmSync(`./user-projects/${userEmail}`, { recursive: true });
+		// await container.stop();
+		// fs.rmSync(`./user-projects/${userEmail}`, { recursive: true });
 	});
 };

@@ -5,15 +5,15 @@ import { Link } from 'react-router-dom';
 
 const Home = () => {
 	const techStack: {
-		[key in 'React' | 'Node' | 'Express' | 'MERN' | 'NextJS']: string;
+		[key in 'react' | 'node' | 'express' | 'mern' | 'nextjs']: string;
 	} = {
-		React:
+		react:
 			'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1150px-React-icon.svg.png',
-		Node: 'https://images.seeklogo.com/logo-png/27/1/node-js-logo-png_seeklogo-273749.png?v=1957362420476283968',
-		Express:
+		node: 'https://images.seeklogo.com/logo-png/27/1/node-js-logo-png_seeklogo-273749.png?v=1957362420476283968',
+		express:
 			'https://w7.pngwing.com/pngs/925/447/png-transparent-express-js-node-js-javascript-mongodb-node-js-text-trademark-logo.png',
-		MERN: 'https://miro.medium.com/v2/resize:fit:678/0*kxPYwfJmkXZ3iCWy.png',
-		NextJS: 'https://cdn.worldvectorlogo.com/logos/next-js.svg',
+		mern: 'https://miro.medium.com/v2/resize:fit:678/0*kxPYwfJmkXZ3iCWy.png',
+		nextjs: 'https://cdn.worldvectorlogo.com/logos/next-js.svg',
 	};
 
 	const [showCreateProject, setShowCreateProject] = useState(false);

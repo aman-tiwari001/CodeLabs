@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, {  useRef, useEffect } from 'react';
 import { Terminal as TerminalIcon } from 'lucide-react';
 import { Terminal } from 'xterm';
 import { WebLinksAddon } from 'xterm-addon-web-links';
@@ -29,7 +29,7 @@ export const CodeTerminal: React.FC = () => {
 
 		term.open(terminalRef.current);
 		fitAddon.fit();
-		term.write('>_ ');
+		// for(let i = 0; i < 30; i++) term.writeln('>_ ');
 		let currentCommand = '';
 		term.onData((data) => {
 			console.log('term ', data);
@@ -38,10 +38,11 @@ export const CodeTerminal: React.FC = () => {
 			if (data === '\r') {
 				term.write('\n');
 				console.log('currentCommand', currentCommand);
-				socket.emit('execute-command', currentCommand, (res: string) => {
+				socket.emit('execute-command', currentCommand);
+				socket.on('command-output', (res: string) => {
 					term.writeln(res.toString());
+					if(currentCommand.length) term.write('>_ ');
 					currentCommand = '';
-					term.write('>_ ');
 				});
 			} else if (data === '\u007F') {
 				term.write('\b \b');
@@ -54,7 +55,7 @@ export const CodeTerminal: React.FC = () => {
 	}, [socket]);
 
 	return (
-		<div ref={terminalRef} className='w-full h-full py-4 px-1 bg-black'>
+		<div ref={terminalRef} className='w-full py-4 px-1 bg-black h-full'>
 			<h2 className='text-white flex gap-1 mb-2 border-b rounded-none pb-1 pl-1 font-semibold'>
 				{' '}
 				<TerminalIcon /> TERMINAL

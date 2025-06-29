@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { createProject } from '../api/user';
 import toast from 'react-hot-toast';
-import { AxiosError } from 'axios';
 import { motion } from 'framer-motion';
+import { createProject } from '../api/user';
 
 interface CreateProjectProps {
 	showCreateProject: boolean;
@@ -12,7 +11,8 @@ interface CreateProjectProps {
 const CreateProject = ({ setShowCreateProject }: CreateProjectProps) => {
 	const [projectData, setProjectData] = useState({
 		name: '',
-		techStack: 'React',
+		techStack: 'react',
+		createdAt: new Date(),
 	});
 	const [loading, setLoading] = useState(false);
 
@@ -23,7 +23,7 @@ const CreateProject = ({ setShowCreateProject }: CreateProjectProps) => {
 			await createProject(projectData);
 			toast.success('Project created');
 			setShowCreateProject(false);
-		} catch (error: AxiosError) {
+		} catch (error: any) {
 			console.log(error);
 			toast.error(error?.response.data.message);
 		} finally {
@@ -32,9 +32,9 @@ const CreateProject = ({ setShowCreateProject }: CreateProjectProps) => {
 		}
 	};
 	return (
-		<section className='absolute z-10 top-0 left-0 w-screen backdrop-brightness-50 flex justify-center items-center h-screen '>
+		<section className='fixed z-20 top-0 inset-0 left-0 w-screen flex justify-center backdrop-brightness-[0.2] items-center h-screen '>
 			<motion.div
-				className='rounded-xl shadow-md p-4 px-6 w-[40%] max-md:w-[95%] bg-gray-800 '
+				className='rounded-xl shadow-md p-4 px-6 w-[40%] max-md:w-[95%] bg-gray-900'
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.3 }}
@@ -53,11 +53,11 @@ const CreateProject = ({ setShowCreateProject }: CreateProjectProps) => {
 				</h2>
 				<form
 					onSubmit={handleCreateProject}
-					className='flex flex-col gap-2 justify-start'
+					className='flex flex-col gap-2 text-white justify-start'
 				>
 					<label htmlFor='name'>Project name:</label>
 					<input
-						className='rounded-full px-4 py-2 text-md'
+						className='rounded-full px-4 py-2 text-md bg-gray-800'
 						type='text'
 						name='name'
 						id='name'
@@ -69,7 +69,7 @@ const CreateProject = ({ setShowCreateProject }: CreateProjectProps) => {
 					/>
 					<label htmlFor='techStack'>Choose tech stack:</label>
 					<select
-						className='rounded-full px-3 py-3 text-md'
+						className='rounded-full px-3 py-3 text-md bg-gray-800'
 						name='techStack'
 						id='techStack'
 						value={projectData.techStack}
@@ -78,11 +78,11 @@ const CreateProject = ({ setShowCreateProject }: CreateProjectProps) => {
 						}
 						required
 					>
-						<option value='React'>React</option>
-						<option value='Node'>Node</option>
-						<option value='Express'>Express</option>
-						<option value='MERN'>MERN</option>
-						<option value='NextJS'>NextJS</option>
+						<option value='react'>React</option>
+						<option value='node'>Node</option>
+						<option value='express'>Express</option>
+						<option value='mern'>MERN</option>
+						<option value='nextjs'>NextJS</option>
 					</select>
 					<button
 						type='submit'

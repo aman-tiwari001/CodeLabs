@@ -35,7 +35,7 @@ const UserSchema = new mongoose.Schema<UserType>({
 			},
 			techStack: {
 				type: String,
-				enum: ['React', 'Node', 'Express', 'MERN', 'NextJS'],
+				enum: ['react', 'node', 'express', 'mern', 'nextjs'],
 			},
 			createdAt: Date,
 		},

@@ -16,6 +16,7 @@ const IDE = () => {
 	const { logout } = useAuth0();
 
 	const [tabs, setTabs] = useState<Tab[]>([]);
+	const [filesLoaded, setFilesLoaded] = useState<boolean>(false);
 	const [activeTab, setActiveTab] = useState<Tab | null>(null);
 	const [updatingFile, setUpdatingFile] = useState<boolean>(false);
 	const [fetchingDirContents, setFetchingDirContents] =
@@ -23,10 +24,10 @@ const IDE = () => {
 	const [fetchingFileContents, setFetchingFileContents] =
 		useState<boolean>(false);
 
-	const files = useFileStore((state) => state.files);
-	const setFiles = useFileStore((state) => state.setFiles);
-	const socket = useSocketStore((state) => state.socket);
-	const setSocket = useSocketStore((state) => state.setSocket);
+	const files = useFileStore((state: any) => state.files);
+	const setFiles = useFileStore((state: any) => state.setFiles);
+	const socket = useSocketStore((state: any) => state.socket);
+	const setSocket = useSocketStore((state: any) => state.setSocket);
 
 	const addFile = (node: FileNode, type: string, name: string) => {
 		if (type === 'file') {
@@ -151,6 +152,7 @@ const IDE = () => {
 		newSocket.on('folder-structure', (data) => {
 			const parsedFiles = parseFileStructure(data.structure);
 			setFiles(parsedFiles);
+			setFilesLoaded(true);
 		});
 		newSocket.on('auth-error', () => {
 			toast.error('Session expired. Please login again');
@@ -177,6 +179,7 @@ const IDE = () => {
 							<DirectoryExplorer
 								files={files}
 								onAddFile={addFile}
+								filesLoaded={filesLoaded}
 								fetchDirContents={fetchDirContents}
 								fetchFileContents={fetchFileContents}
 								fetchingDirContents={fetchingDirContents}

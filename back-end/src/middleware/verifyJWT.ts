@@ -40,15 +40,12 @@ export const verifyJWT = async (
 			return;
 		}
 		const header = decode(token, { complete: true })?.header;
-		console.log('decoded header : ', header);
 		const auth0key = await getAuth0Key(header);
 		const decoded = verify(token, auth0key, {
 			algorithms: ['RS256'],
-			// audience :,
 			issuer: 'https://' + process.env.AUTH0_DOMAIN + '/',
 		});
 		req.user = decoded;
-		console.log('decoded user : ', decoded);
 		next();
 	} catch (error: any) {
 		console.log('Invalid token', error);
@@ -68,16 +65,12 @@ export const verifyJWTForSocket = async (token: string) => {
 			return false;
 		}
 		const header = decode(token, { complete: true })?.header;
-		console.log('decoded token header - ', header);
 		const auth0key = await getAuth0Key(header);
-		console.log('auth0key - ', auth0key);
 		const decoded = verify(token, auth0key, {
 			algorithms: ['RS256'],
-			// audience :,
 			issuer: 'https://' + process.env.AUTH0_DOMAIN + '/',
 		});
-		console.log('decoded : ', decoded);
-		console.log('socket token verified');
+		console.log('Socket token verified');
 		return { success: true, user: decoded };
 	} catch (error: any) {
 		console.log('Invalid token', error);

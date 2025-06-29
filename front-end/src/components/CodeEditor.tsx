@@ -36,11 +36,9 @@ export const CodeEditor: React.FC<Props> = ({
 							}`}
 						onClick={() => onTabChange(tab)}
 					>
-						<span>{tab.name}</span>
-						{updatingFile && tab.id == activeTab?.id ? (
+						<span className='font-semibold'>{tab.name}</span>
+						{updatingFile && tab.id == activeTab?.id && (
 							<div className='w-2 h-2 bg-green-400 rounded-full animate-pulse'></div>
-						) : (
-							<p>✅</p>
 						)}
 						<button
 							className='hover:bg-gray-700 rounded p-1'

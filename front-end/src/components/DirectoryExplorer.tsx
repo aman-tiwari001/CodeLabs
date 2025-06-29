@@ -17,6 +17,7 @@ interface Props {
 	fetchDirContents: (node: FileNode) => void;
 	fetchFileContents: (node: FileNode) => void;
 	fetchingDirContents: boolean;
+	filesLoaded: boolean;
 }
 
 const FileTreeNode: React.FC<{
@@ -145,11 +146,12 @@ const FileTreeNode: React.FC<{
 export const DirectoryExplorer: React.FC<Props> = ({
 	files,
 	onAddFile,
+	filesLoaded,
 	fetchDirContents,
 	fetchFileContents,
 	fetchingDirContents,
 }) => {
-	const setFiles = useFileStore((state) => state.setFiles);
+	const setFiles = useFileStore((state: any) => state.setFiles);
 
 	const addToSrcDir = (name: string, type: 'file' | 'dir') => {
 		const path = files[0].path.split('/').slice(0, -1).join('/');
@@ -218,7 +220,7 @@ export const DirectoryExplorer: React.FC<Props> = ({
 			</div>
 			<div id='root-dir'></div>
 			<div className='overflow-y-auto flex-1'>
-				{files.length ? (
+				{filesLoaded ? (
 					files.map((node) => (
 						<FileTreeNode
 							key={node.id}
@@ -239,6 +241,11 @@ export const DirectoryExplorer: React.FC<Props> = ({
 						width={190}
 						className='mx-4'
 					/>
+				)}
+				{filesLoaded && files.length === 0 && (
+					<div className='text-gray-300 text-center mt-10'>
+						No files found
+					</div>
 				)}
 			</div>
 		</div>

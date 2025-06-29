@@ -6,5 +6,7 @@ contract FavoriteNumber {
 
     function setFavoriteNumber(uint256 _number) public {
         favoriteNumber = _number;
+
     }
 }
+

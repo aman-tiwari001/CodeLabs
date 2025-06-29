@@ -8,7 +8,6 @@ const LoginButton = () => {
 
 	const handleLogin = async () => {
 		try {
-			console.log('hey in side this func');
 			await loginWithPopup();
 			const loginData = await getIdTokenClaims();
 			console.log(loginData);
