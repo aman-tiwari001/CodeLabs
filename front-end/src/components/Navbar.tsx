@@ -8,7 +8,7 @@ const Navbar = () => {
 	const { isAuthenticated, user, isLoading } = useAuth0();
 
 	return (
-		<nav className='flex justify-between items-center w-full px-10 max-sm:px-2 py-2 gradient shadow-xl fixed top-0 left-0 right-0 z-10'>
+		<nav className='flex justify-between items-center w-full px-10 max-sm:px-2 py-2 pt-12 gradient shadow-xl fixed -top-10 left-0 right-0 z-10 rounded-[30px]'>
 			<div>
 				<Link to='/home' className='text-white hover:text-white'>
 					<h2 className='font-bold max-md:text-lg rounded-full text-2xl p-2 bg-indigo-400'>

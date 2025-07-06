@@ -83,6 +83,16 @@ const IDE = () => {
 		debouncedEmit(activeTab.path, content);
 	};
 
+	const refreshProjectStructure = () => {
+		socket.emit('refresh-project-structure', (data: any) => {
+			let formatStructure = data.structure.sort((a: any, b: any) => {
+				if (a.type === 'dir' && b.type === 'file') return -1;
+			});
+			setFiles(formatStructure);
+			console.log('Refreshed formatted structure: ', formatStructure);
+		});
+	};
+
 	const fetchDirContents = (node: FileNode) => {
 		if (!node.isOpen && !node.children) {
 			setFetchingDirContents(true);
@@ -140,7 +150,7 @@ const IDE = () => {
 
 	useEffect(() => {
 		const newSocket = io(
-			`http://localhost:5000?projectId=${
+			`${import.meta.env.VITE_SERVER_URL}?projectId=${
 				window.location.pathname.split('/')[2]
 			}`,
 			{ withCredentials: true }
@@ -204,7 +214,7 @@ const IDE = () => {
 				</Panel>
 				<PanelResizeHandle className='h-1 bg-gray-700 hover:bg-blue-500 transition-colors' />
 				<Panel defaultSize={20} minSize={10}>
-					<CodeTerminal />
+					<CodeTerminal refreshProjectStructure={refreshProjectStructure} />
 				</Panel>
 			</PanelGroup>
 		</div>

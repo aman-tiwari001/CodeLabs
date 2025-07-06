@@ -6,22 +6,17 @@ import { FitAddon } from 'xterm-addon-fit';
 import 'xterm/css/xterm.css';
 import useSocketStore from '../store/socketStore';
 
-interface Props {
-	refreshProjectStructure: () => void;
-}
-
-export const CodeTerminal: React.FC<Props> = ({ refreshProjectStructure }) => {
+export const CodeTerminal: React.FC = () => {
 	const terminalRef = useRef<HTMLDivElement>(null);
+	const [currentCommand, setCurrentCommand] = useState('');
 	const [isCommandExecuting, setIsCommandExecuting] = useState(false);
+	const [isWaitingForPrompt, setIsWaitingForPrompt] = useState(false);
 	const termRef = useRef<Terminal | null>(null);
 	const fitAddonRef = useRef<FitAddon | null>(null);
-	const commandBufferRef = useRef<string>('');
 
 	const socket = useSocketStore((state: any) => state.socket);
-
 	useEffect(() => {
 		if (!socket) return;
-
 		const term = new Terminal({
 			cursorBlink: true,
 			fontSize: 14,
@@ -45,10 +40,10 @@ export const CodeTerminal: React.FC<Props> = ({ refreshProjectStructure }) => {
 
 		termRef.current = term;
 		fitAddonRef.current = fitAddon;
-
 		if (terminalRef.current) {
 			term.open(terminalRef.current);
 			fitAddon.fit();
+			// Focus the terminal to ensure it can receive input
 			term.focus();
 		}
 
@@ -60,65 +55,75 @@ export const CodeTerminal: React.FC<Props> = ({ refreshProjectStructure }) => {
 		};
 		window.addEventListener('resize', handleResize); // Handle socket events
 		const handleCommandOutput = (output: string) => {
-			term.write(output);
-			// Reset executing state when we see a new prompt
-			if (output.includes('$ ')) {
+			if (output) {
+				term.write(output);
+			}
+			// Reset executing state when output contains a prompt or error
+			if (output.includes('$ ') || output.includes('Error:')) {
 				setIsCommandExecuting(false);
 			}
 		};
-		// Remove any existing listeners and add new one
-		socket.off('command-output');
-		socket.on('command-output', handleCommandOutput);
-		// Handle terminal input
+
+		// Remove any existing listeners to prevent duplicates
+		socket.off('command-output', handleCommandOutput);
+		socket.on('command-output', handleCommandOutput); // Handle terminal input
 		term.onData((data) => {
-			// Handle Ctrl+C - always allow this
-			if (data === '\x03') {
-				socket.emit('execute-command', '\x03');
-				setIsCommandExecuting(false);
-				commandBufferRef.current = '';
-				return;
-			}
+			// Use functional updates to avoid stale closures
+			setIsCommandExecuting((prevExecuting) => {
+				if (prevExecuting) {
+					// If a command is executing, only allow Ctrl+C
+					if (data === '\x03') {
+						// Ctrl+C
+						socket.emit('execute-command', '\x03');
+						setCurrentCommand('');
+						return false; // Stop executing
+					}
+					return true; // Keep executing
+				}
 
-			// Block other input during command execution
-			if (isCommandExecuting) {
-				return;
-			}
-
-			if (data === '\r') {
-				// Enter key - execute command
-				const command = commandBufferRef.current.trim();
-				term.write('\r\n'); // Move to next line
-
-				console.log('Executing command:', command);
-
-				if (command) {
-					setIsCommandExecuting(true);
-					socket.emit('execute-command', command, () => {
-						refreshProjectStructure();
+				if (data === '\r') {
+					// Enter key
+					setCurrentCommand((prevCommand) => {
+						if (prevCommand.trim()) {
+							// Send command to server, don't echo locally
+							socket.emit('execute-command', prevCommand.trim());
+							setTimeout(() => setIsCommandExecuting(true), 0);
+							return '';
+						} else {
+							// Empty command, send to server to get new prompt
+							socket.emit('execute-command', '');
+						}
+						return '';
 					});
-				} else {
-					socket.emit('execute-command', '');
+				} else if (data === '\u007F') {
+					// Backspace
+					setCurrentCommand((prevCommand) => {
+						if (prevCommand.length > 0) {
+							term.write('\b \b');
+							return prevCommand.slice(0, -1);
+						}
+						return prevCommand;
+					});
+				} else if (data === '\x03') {
+					// Ctrl+C
+					setCurrentCommand('');
+					socket.emit('execute-command', '\x03');
+				} else if (data >= ' ' || data === '\t') {
+					// Printable characters and tab - only echo locally for immediate feedback
+					setCurrentCommand((prevCommand) => prevCommand + data);
+					term.write(data);
 				}
 
-				commandBufferRef.current = '';
-			} else if (data === '\u007F') {
-				// Backspace
-				if (commandBufferRef.current.length > 0) {
-					commandBufferRef.current = commandBufferRef.current.slice(0, -1);
-					term.write('\b \b'); // Erase character visually
-				}
-			} else if (data >= ' ' || data === '\t') {
-				// Printable characters and tab
-				commandBufferRef.current += data;
-				term.write(data);
-			}
+				return prevExecuting;
+			});
 		});
+
 		return () => {
 			window.removeEventListener('resize', handleResize);
-			socket.off('command-output');
+			socket.off('command-output', handleCommandOutput);
 			term.dispose();
 		};
-	}, [socket]);
+	}, [socket]); // Only depend on socket
 
 	// Handle container resize
 	useEffect(() => {

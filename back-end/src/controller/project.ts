@@ -30,7 +30,7 @@ export const initializeProject = async (req: Request, res: Response) => {
 		}
 		user?.projects.push({ name, techStack, createdAt: new Date() });
 		await user?.save();
-		await copyFolderInBucket(`base/${techStack}`, `${req.user.email}/${name}`);
+		await copyFolderInBucket(`bases/${techStack}`, `user-projects/${req.user.email}/${name}`);
 		res
 			.status(200)
 			.json({ success: true, message: 'Project initialized successfully' });

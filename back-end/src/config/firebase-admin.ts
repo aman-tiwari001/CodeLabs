@@ -64,7 +64,7 @@ export const copyFolderInBucket = async (
 
 export async function downloadFile(filePath: string, localFilePath: string) {
 	await bucket.file(filePath).download({ destination: localFilePath });
-	console.log(`Downloaded: ${filePath} -> ${localFilePath}`);
+	// console.log(`Downloaded: ${filePath} -> ${localFilePath}`);
 }
 
 // Function to download entire directory structure
@@ -99,10 +99,10 @@ export const updateContentOnStorageBucket = async (
 	filePath: string
 ) => {
 	// Update content in the storage bucket
-	console.log('Updating content on storage bucket:', filePath.slice(16));
+	console.log('Updating content on storage bucket:', filePath.slice(2));
 	try {
 		await bucket.upload(filePath, {
-			destination: filePath.slice(16),
+			destination: filePath.slice(2),
 		});
 	} catch (error) {
 		console.error('Error updating content on storage bucket:', error);

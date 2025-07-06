@@ -25,7 +25,7 @@ const LoginButton = () => {
 		}
 	};
 
-	return <button className='max-md:text-sm' onClick={handleLogin}>Login</button>;
+	return <button className='max-md:text-sm rounded-full px-5 py-2' onClick={handleLogin}>Login</button>;
 };
 
 export default LoginButton;

@@ -1,3 +1,5 @@
 node_modules
 .env
 fb_secrets.json
+user-projects
+dist

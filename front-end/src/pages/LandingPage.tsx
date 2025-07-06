@@ -1,10 +1,18 @@
 import { motion } from 'framer-motion';
-import { FaCode, FaLaptopCode } from 'react-icons/fa';
+import { FaCode, FaLaptopCode, FaLinkedin } from 'react-icons/fa';
 import { syncUserWithDB } from '../api/user';
 import { useAuth0 } from '@auth0/auth0-react';
-import { BiCloud, BiFolder, BiTerminal } from 'react-icons/bi';
+import {
+	BiCloud,
+	BiFolder,
+	BiLogoGithub,
+	BiLogoTwitter,
+	BiTerminal,
+	BiX,
+} from 'react-icons/bi';
 import { GrTechnology } from 'react-icons/gr';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { BsTwitterX } from 'react-icons/bs';
 
 const LandingPage = () => {
 	const { loginWithPopup, getIdTokenClaims, isAuthenticated } = useAuth0();
@@ -36,6 +44,7 @@ const LandingPage = () => {
 
 	return (
 		<main className='w-full flex flex-col min-h-screen'>
+			{/* Hero Section */}
 			<section className='w-full py-20 md:py-32 text-white contrast-125 bg-cover bg-[url(https://miro.medium.com/v2/resize:fit:1400/0*7VyEZgzwUhQMeBqb)]'>
 				<div className='container mx-auto px-4 sm:px-6 lg:px-8 '>
 					<motion.div
@@ -52,7 +61,7 @@ const LandingPage = () => {
 							Your powerful online IDE for all your development needs
 						</p>
 						<motion.button
-							className='gradient px-8 py-3 rounded-full text-lg max-md:text-md font-semibold hover:bg-indigo-100 transition duration-300'
+							className='gradient	 px-8 py-3 rounded-full text-lg max-md:text-md font-semibold hover:bg-indigo-100 transition duration-300'
 							whileHover={{ scale: 1.05 }}
 							whileTap={{ scale: 0.95 }}
 							onClick={handleLogin}
@@ -62,7 +71,9 @@ const LandingPage = () => {
 					</motion.div>
 				</div>
 			</section>
-			<section className='p-10 gradient'>
+
+			{/* Features */}
+			<section className='p-10 gradient rounded-t-[30px] flex flex-col items-center justify-center gap-5'>
 				<h2 className='text-4xl max-md:text-3xl mb-7 text-center'>Features</h2>
 				<div className='flex items-center justify-center flex-wrap gap-7'>
 					<motion.div
@@ -130,6 +141,86 @@ const LandingPage = () => {
 						</h3>
 						<p>All your projects are automatically saved to cloud.</p>
 					</motion.div>
+				</div>
+			</section>
+
+			{/* Footer */}
+			<section>
+				<div className='w-full py-12 bg-gray-950 text-white'>
+					<div className='container mx-auto px-4 sm:px-6 lg:px-8'>
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.5 }}
+							className='flex justify-between items-start mx-9'
+						>
+							<div>
+								<h3 className='text-2xl font-bold mb-4 flex items-center gap-2'>
+									<FaLaptopCode size={24} /> CodeLabs
+								</h3>
+								<p className='text-gray-300'>
+									Your powerful online IDE for all your development needs. Code
+									anywhere and anytime.
+								</p>
+							</div>
+
+							<div>
+								<h4 className='text-xl font-semibold mb-4'>Contact Us</h4>
+								<div className='flex items-center space-x-4 text-2xl'>
+									<motion.a
+										href='https://www.linkedin.com/in/aman-tiwari001/'
+										target='_blank'
+										rel='noopener noreferrer'
+										whileHover={{ y: -5 }}
+										className='cursor-pointer'
+									>
+										<FaLinkedin size={27} className='gradient bg-clip-text' />
+									</motion.a>
+									<motion.a
+										href='https://x.com/aman_tiwari100'
+										target='_blank'
+										rel='noopener noreferrer'
+										whileHover={{ y: -5 }}
+										className='cursor-pointer'
+									>
+										<BsTwitterX className='gradient bg-clip-text' />
+									</motion.a>
+									<motion.a
+										href='https://github.com/aman-tiwari001/CodeLabs'
+										target='_blank'
+										rel='noopener noreferrer'
+										whileHover={{ y: -5 }}
+										className='cursor-pointer'
+									>
+										<BiLogoGithub size={30} className='gradient bg-clip-text' />
+									</motion.a>
+								</div>
+							</div>
+						</motion.div>
+						
+						<motion.div
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							transition={{ delay: 0.5, duration: 0.5 }}
+							className='border-t border-gray-700 mt-8 pt-8 text-center'
+						>
+							<p className='mb-6 text-gray-300'>
+								Designed by{' '}
+								<a
+									href='https://www.linkedin.com/in/aman-tiwari001/'
+									target='_blank'
+									rel='noopener noreferrer'
+									className='underline text-white hover:gradient bg-clip-text transition-colors'
+								>
+									Aman Tiwari
+								</a>{' '}
+								with ❤️‍🔥
+							</p>
+							<p className='text-gray-400'>
+								© {new Date().getFullYear()} CodeLabs. All rights reserved.
+							</p>
+						</motion.div>
+					</div>
 				</div>
 			</section>
 		</main>
