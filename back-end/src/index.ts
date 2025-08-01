@@ -34,12 +34,17 @@ connectDB();
 app.use(cookieParser());
 app.use(express.json());
 
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (_, res: Response) => {
 	res.status(200).send('Welcome to the CodeLabs 🚀');
 });
+
 app.post('/api/auth', verifyJWT, setCookie, handleAuth);
-app.post('/api/create-project', verifyJWT, initializeProject);
-app.get('/api/get-projects', verifyJWT, getAllProjects);
+app.post('/api/project', verifyJWT, initializeProject);
+app.get('/api/projects', verifyJWT, getAllProjects);
+
+app.all('*', (_, res: Response) => {
+	res.status(404).send('404 | Route not found');
+});
 
 io.on('connection', socketController);
 

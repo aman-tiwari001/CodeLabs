@@ -2,17 +2,11 @@ import { motion } from 'framer-motion';
 import { FaCode, FaLaptopCode, FaLinkedin } from 'react-icons/fa';
 import { syncUserWithDB } from '../api/user';
 import { useAuth0 } from '@auth0/auth0-react';
-import {
-	BiCloud,
-	BiFolder,
-	BiLogoGithub,
-	BiLogoTwitter,
-	BiTerminal,
-	BiX,
-} from 'react-icons/bi';
+import { BiCloud, BiFolder, BiLogoGithub, BiTerminal } from 'react-icons/bi';
 import { GrTechnology } from 'react-icons/gr';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { BsTwitterX } from 'react-icons/bs';
+import { useEffect } from 'react';
 
 const LandingPage = () => {
 	const { loginWithPopup, getIdTokenClaims, isAuthenticated } = useAuth0();
@@ -20,7 +14,6 @@ const LandingPage = () => {
 
 	const handleLogin = async () => {
 		try {
-			console.log('hey in side this func');
 			await loginWithPopup();
 			const loginData = await getIdTokenClaims();
 			console.log(loginData);
@@ -38,9 +31,11 @@ const LandingPage = () => {
 		}
 	};
 
-	if (isAuthenticated) {
-		return <Navigate to='/home' />;
-	}
+	useEffect(() => {
+		if (isAuthenticated) {
+			navigate('/home');
+		}
+	}, [isAuthenticated, navigate]);
 
 	return (
 		<main className='w-full flex flex-col min-h-screen'>
@@ -154,11 +149,11 @@ const LandingPage = () => {
 							transition={{ duration: 0.5 }}
 							className='flex justify-between items-start mx-9'
 						>
-							<div>
+							<div className='w-[50%]'>
 								<h3 className='text-2xl font-bold mb-4 flex items-center gap-2'>
 									<FaLaptopCode size={24} /> CodeLabs
 								</h3>
-								<p className='text-gray-300'>
+								<p className='text-gray-300 text-justify'>
 									Your powerful online IDE for all your development needs. Code
 									anywhere and anytime.
 								</p>
@@ -197,7 +192,7 @@ const LandingPage = () => {
 								</div>
 							</div>
 						</motion.div>
-						
+
 						<motion.div
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}

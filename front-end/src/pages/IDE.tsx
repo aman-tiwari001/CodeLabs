@@ -110,6 +110,7 @@ const IDE = () => {
 					);
 					console.log('Updated structure: ', updatedStructure);
 					setFiles(updatedStructure);
+
 					setFetchingDirContents(false);
 				}
 			);

@@ -11,7 +11,7 @@ const Home = () => {
 			'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1150px-React-icon.svg.png',
 		node: 'https://images.seeklogo.com/logo-png/27/1/node-js-logo-png_seeklogo-273749.png?v=1957362420476283968',
 		express:
-			'https://w7.pngwing.com/pngs/925/447/png-transparent-express-js-node-js-javascript-mongodb-node-js-text-trademark-logo.png',
+			'https://www.manektech.com/storage/developer/1646733543.webp',
 		mern: 'https://miro.medium.com/v2/resize:fit:678/0*kxPYwfJmkXZ3iCWy.png',
 		nextjs: 'https://cdn.worldvectorlogo.com/logos/next-js.svg',
 	};
@@ -38,9 +38,9 @@ const Home = () => {
 		<main className='mt-24 px-10'>
 			<section>
 				<h2 className='text-3xl mb-7'>Your Projects</h2>
-				<div className='flex flex-wrap gap-10 items-center justify-start'>
+				<div className='flex flex-wrap gap-10 items-center justify-start max-md:justify-center'>
 					<div
-						className='flex flex-col items-center justify-center cursor-pointer bg-white hover:gradient p-2 rounded-xl text-black w-[170px] h-[210px]'
+						className='flex flex-col items-center hover:scale-110 duration-300 justify-center cursor-pointer bg-white hover:gradient p-2 rounded-xl text-black w-[170px] h-[208px] max-md:w-[130px]'
 						onClick={() => {
 							document.body.style.overflow = 'hidden';
 							setShowCreateProject(true);
@@ -48,7 +48,7 @@ const Home = () => {
 					>
 						<img
 							src={'/folder.png'}
-							className='bg-white rounded-lg p-1 h-32 w-full object-cover'
+							className='rounded-lg p-1 h-32 w-full object-cover'
 							alt='project logo'
 						/>
 						<h3 className='font-medium'>Create New Project</h3>
@@ -62,7 +62,7 @@ const Home = () => {
 							>
 								<div
 									key={project.name}
-									className='gradient bg-gray-200 hover:scale-110 duration-300 cursor-pointer p-2 rounded-xl w-[170px] h-[210px]'
+									className='gradient bg-gray-200 hover:scale-110 duration-300 cursor-pointer p-2 rounded-xl w-[170px] h-[208px] max-md:w-[130px]'
 								>
 									<img
 										src={techStack[project.techStack as keyof typeof techStack]}
@@ -75,10 +75,10 @@ const Home = () => {
 											<br />
 										</h3>
 										<span className='bg-black rounded-md px-1 text-sm'>
-											#{project.techStack}
+											# {project.techStack}
 										</span>
 										<p className='text-sm text-gray-200'>
-											{new Date(project.createdAt).toDateString()}
+											{new Date(project.createdAt).toDateString().slice(3)}
 										</p>
 									</div>
 								</div>

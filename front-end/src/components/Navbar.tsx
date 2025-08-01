@@ -22,11 +22,9 @@ const Navbar = () => {
 						<Skeleton width={150} count={2} baseColor='indigo' />
 					) : isAuthenticated && user ? (
 						<div className='flex items-center gap-2 px-2 py-1 bg-purple-500 rounded-xl'>
-							<img
-								className='rounded-full'
-								width={42}
-								src={user?.picture}
-							/>
+							{user.picture ? (
+								<img className='rounded-full' width={42} src={user.picture} />
+							) : null}
 							<div className='max-md:text-sm text-md text-left max-[500px]:hidden'>
 								<h2 className='font-medium'>{user?.name}</h2>
 								<p className='text-gray-200 text-sm max-md:hidden'>

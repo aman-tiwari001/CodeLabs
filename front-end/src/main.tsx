@@ -12,8 +12,9 @@ createRoot(document.getElementById('root')!).render(
 			clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
 			authorizationParams={{
 				redirect_uri: 'http://localhost:5173/home',
-				// redirect_uri: window.location.origin,
 			}}
+			useRefreshTokens={true}
+			cacheLocation='memory'
 		>
 			<App />
 		</Auth0Provider>

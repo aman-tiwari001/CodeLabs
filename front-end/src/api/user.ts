@@ -22,11 +22,11 @@ export const syncUserWithDB = async (userData: UserType) => {
 };
 
 export const createProject = async (projectData: ProjectType) => {
-	const res = await axiosInstance.post('/api/create-project', projectData);
+	const res = await axiosInstance.post('/api/project', projectData);
 	return res.data;
 };
 
 export const getAllProjects = async () => {
-	const res = await axiosInstance.get('/api/get-projects');
+	const res = await axiosInstance.get('/api/projects');
 	return res.data;
 };

@@ -10,10 +10,22 @@ import {
 	fetchFolderStructure,
 	updateContentOnServer,
 } from './project';
+import fs from 'fs';
 
 export const socketController = async (socket: any) => {
+	const socketTimeouts = new Map<string, NodeJS.Timeout>();
+	const socketContainers = new Map<
+		string,
+		{
+			containerManager: ContainerManager;
+			container: any;
+			shellSession: any;
+			shellStream: any;
+		}
+	>();
 	const projectId = socket.handshake.query.projectId;
 	const cookies = socket.handshake.headers.cookie;
+
 	const parsedCookies = cookies
 		? Object.fromEntries(
 				cookies.split('; ').map((cookie: string) => cookie.split('='))
@@ -23,12 +35,23 @@ export const socketController = async (socket: any) => {
 	const verifyRes = await verifyJWTForSocket(parsedCookies.auth_token);
 
 	let userEmail: string;
+
 	if (verifyRes) {
 		userEmail = (verifyRes.user as UserType).email;
-		await fetchAndDownloadFolder(
-			`user-projects/${userEmail}/${projectId}`,
-			`./user-projects/${userEmail}/${projectId}`
-		);
+		const projectPath = `./user-projects/${userEmail}/${projectId}`;
+
+		if (socketTimeouts.has(userEmail + projectId)) {
+			clearTimeout(socketTimeouts.get(userEmail + projectId)!);
+			socketTimeouts.delete(userEmail + projectId);
+		}
+
+		if (!fs.existsSync(projectPath)) {
+			await fetchAndDownloadFolder(
+				`user-projects/${userEmail}/${projectId}`,
+				`./user-projects/${userEmail}/${projectId}`
+			);
+		}
+
 		socket.emit('folder-structure', {
 			structure: await fetchFolderStructure(
 				`./user-projects/${userEmail}/${projectId}`
@@ -39,24 +62,44 @@ export const socketController = async (socket: any) => {
 		socket.emit('auth-error', { msg: 'Invalid token' });
 		socket.disconnect();
 		return;
-	} // Creating a docker container for the user
-	const containerManager = new ContainerManager();
-	let container, shellSession, shellStream;
+	}
+
+	// Creating a docker container for the user
+	let containerManager = null,
+		container = null,
+		shellSession = null,
+		shellStream = null;
+
+	const session = socketContainers.get(userEmail + projectId);
+
+	if (session && session.containerManager) {
+		containerManager = session?.containerManager;
+		container = session?.container;
+		shellSession = session?.shellSession;
+		shellStream = session?.shellStream;
+		socketContainers.delete(userEmail + projectId);
+	} else {
+		containerManager = new ContainerManager();
+	}
 
 	try {
-		container = await containerManager.createContainer(userEmail, projectId);
+		container = container
+			? container
+			: await containerManager.createContainer(userEmail, projectId);
 		await container.start();
 
 		// Create a persistent shell session for this socket
-		shellSession = await containerManager.createShellSession(
-			container,
-			socket.id
-		);
-		shellStream = await shellSession.start({
-			Detach: false,
-			Tty: true,
-			hijack: true,
-		});
+		shellSession = shellSession
+			? shellSession
+			: await containerManager.createShellSession(container, socket.id);
+
+		shellStream = shellStream
+			? shellStream
+			: await shellSession.start({
+					Detach: false,
+					Tty: true,
+					hijack: true,
+			  });
 	} catch (error: any) {
 		console.error('Container/Shell creation error:', error);
 		socket.emit(
@@ -73,12 +116,12 @@ export const socketController = async (socket: any) => {
 
 	// Wait for initialization then send initial prompt
 	setTimeout(() => {
-		socket.emit('command-output', `/${projectId}$ `);
+		socket.emit('command-output', '');
 	}, 1000);
 
 	// Handle shell output
 	let lastCommand = '';
-	shellStream.on('data', (chunk) => {
+	shellStream.on('data', (chunk: any) => {
 		const output = chunk.toString();
 
 		// Filter out initialization noise
@@ -101,7 +144,7 @@ export const socketController = async (socket: any) => {
 		socket.emit('command-output', '\r\n');
 	});
 
-	shellStream.on('error', (err) => {
+	shellStream.on('error', (err: any) => {
 		console.error('Shell stream error:', err);
 		socket.emit('command-output', `Error: ${err.message}\r\n`);
 	});
@@ -144,14 +187,14 @@ export const socketController = async (socket: any) => {
 		if (command === '\x03') {
 			shellStream.write('\x03');
 			setTimeout(() => {
-				shellStream.write('echo -ne "\\r/${projectId}$ "\n');
+				shellStream.write(`/${projectId}$ `);
 			}, 100);
 			return;
 		}
 
 		// Handle empty command
 		if (!command.trim()) {
-			socket.emit('command-output', '\r\n/${projectId}$ ');
+			socket.emit('command-output', `/${projectId}$ `);
 			return;
 		}
 
@@ -183,9 +226,19 @@ export const socketController = async (socket: any) => {
 	});
 	socket.on('disconnect', async (reason: string) => {
 		console.log(`Socket disconnected: ${reason}`);
-		// clean ups
-		containerManager.removeShellSession(socket.id);
-		// await container.stop();
-		// fs.rmSync(`./user-projects/${userEmail}`, { recursive: true });
+		const timeout = setTimeout(async () => {
+			// clean ups
+			containerManager.removeShellSession(socket.id);
+			await container.stop();
+			fs.rmSync(`./user-projects/${userEmail}`, { recursive: true });
+		}, 120000);
+
+		socketTimeouts.set(userEmail + projectId, timeout);
+		socketContainers.set(userEmail + projectId, {
+			containerManager,
+			container,
+			shellSession,
+			shellStream,
+		});
 	});
 };

@@ -130,7 +130,7 @@ const FileTreeNode: React.FC<{
 			{isOpen &&
 				node.children?.map((child) => (
 					<FileTreeNode
-						key={child.id}
+						key={Date.now().toString()}
 						node={child}
 						depth={depth + 1}
 						onAddFile={onAddFile}
@@ -223,7 +223,7 @@ export const DirectoryExplorer: React.FC<Props> = ({
 				{filesLoaded ? (
 					files.map((node) => (
 						<FileTreeNode
-							key={node.id}
+							key={Date.now().toString()}
 							node={node}
 							depth={0}
 							onAddFile={onAddFile}
@@ -243,9 +243,7 @@ export const DirectoryExplorer: React.FC<Props> = ({
 					/>
 				)}
 				{filesLoaded && files.length === 0 && (
-					<div className='text-gray-300 text-center mt-10'>
-						No files found
-					</div>
+					<div className='text-gray-300 text-center mt-10'>No files found</div>
 				)}
 			</div>
 		</div>
