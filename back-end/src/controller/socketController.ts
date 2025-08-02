@@ -1,5 +1,7 @@
 import {
+	deleteFileFromBucket,
 	fetchAndDownloadFolder,
+	renameFileInBucket,
 	updateContentOnStorageBucket,
 } from '../config/firebase-admin';
 import { ContainerManager, validateCommand } from '../docker/containerManager';
@@ -150,36 +152,135 @@ export const socketController = async (socket: any) => {
 	});
 
 	socket.on('refresh-project-structure', async (callback: Function) => {
-		const structure = await fetchFolderStructure(
-			`./user-projects/${userEmail}/${projectId}`
-		);
-		callback({ structure });
+		try {
+			const structure = await fetchFolderStructure(
+				`./user-projects/${userEmail}/${projectId}`
+			);
+			callback({ success: true, structure });
+		} catch (error) {
+			console.error('Error fetching folder structure:', error);
+			callback({ success: false, error: 'Failed to fetch folder structure' });
+		}
 	});
 
 	socket.on(
 		'fetch-folder-contents',
 		async (folderPath: string, callback: Function) => {
-			const folderStructure = await fetchFolderStructure(folderPath);
-			callback({ folder: folderStructure });
+			try {
+				const folderStructure = await fetchFolderStructure(folderPath);
+				callback({ success: true, folder: folderStructure });
+			} catch (error) {
+				console.error('Error fetching folder contents:', error);
+				callback({ success: false, error: 'Failed to fetch folder contents' });
+			}
 		}
 	);
 
 	socket.on(
 		'fetch-file-content',
 		async (filePath: string, callback: Function) => {
-			const content = fetchFileContent(filePath);
-			callback({ content });
+			try {
+				const content = fetchFileContent(filePath);
+				callback({ success: true, content });
+			} catch (error) {
+				console.error('Error fetching file content:', error);
+				callback({ success: false, error: 'Failed to fetch file content' });
+			}
 		}
 	);
 
 	socket.on(
 		'update-file-content',
 		async (data: { filePath: string; content: string }, callback: Function) => {
-			await updateContentOnServer(data.filePath, data.content);
-			await updateContentOnStorageBucket(projectId as string, data.filePath);
-			callback({ message: 'File content updated successfully' });
+			try {
+				await updateContentOnServer(data.filePath, data.content);
+				await updateContentOnStorageBucket(projectId as string, data.filePath);
+				callback({
+					success: true,
+					message: 'File content updated successfully',
+				});
+			} catch (error) {
+				console.error('Error updating file content:', error);
+				callback({ success: false, error: 'Failed to update file content' });
+			}
 		}
 	);
+
+	socket.on(
+		'create-file',
+		async (data: { path: string; type: string }, callback: Function) => {
+			try {
+				const exists = fs.existsSync(data.path);
+
+				if (exists) {
+					return callback({
+						success: false,
+						error: 'File or folder already exists.',
+					});
+				}
+
+				if (data.type === 'file') {
+					fs.writeFileSync(data.path, '');
+					await updateContentOnStorageBucket(projectId as string, data.path);
+				} else if (data.type === 'dir') {
+					fs.mkdirSync(data.path, { recursive: true });
+				} else {
+					return callback({ success: false, error: 'Invalid type' });
+				}
+
+				callback({ success: true });
+			} catch (err) {
+				console.error('Error creating file/folder:', err);
+				callback({ success: false, error: 'Internal server error' });
+			}
+		}
+	);
+
+	socket.on(
+		'delete-file',
+		async (
+			data: { path: string; type: 'file' | 'dir' },
+			callback: Function
+		) => {
+			try {
+				if (!fs.existsSync(data.path)) {
+					return callback({ success: false, error: 'File not found' });
+				}
+				fs.rmSync(data.path, { recursive: true, force: true });
+				await deleteFileFromBucket(data.path.slice(2), data.type);
+				callback({ success: true });
+			} catch (err) {
+				console.error('Error deleting file:', err);
+				callback({ success: false, error: 'Internal server error' });
+			}
+		}
+	);
+
+	socket.on(
+		'rename-file',
+		async (
+			data: { oldPath: string; newPath: string; type: 'file' | 'dir' },
+			callback: Function
+		) => {
+			try {
+				if (!fs.existsSync(data.oldPath)) {
+					return callback({ success: false, error: 'File not found' });
+				}
+				fs.renameSync(data.oldPath, data.newPath);
+				console.log(`Renaming file from ${data.oldPath} to ${data.newPath}`);
+				await renameFileInBucket(
+					data.oldPath.slice(2),
+					data.newPath.slice(2),
+					data.type
+				);
+				callback({ success: true });
+			} catch (err) {
+				console.error('Error renaming file:', err);
+				callback({ success: false, error: 'Internal server error' });
+			}
+		}
+	);
+
 	socket.on('execute-command', async (command: string, callback: Function) => {
 		console.log('Command received: ', command);
 
@@ -225,20 +326,25 @@ export const socketController = async (socket: any) => {
 			callback();
 	});
 	socket.on('disconnect', async (reason: string) => {
-		console.log(`Socket disconnected: ${reason}`);
-		const timeout = setTimeout(async () => {
-			// clean ups
-			containerManager.removeShellSession(socket.id);
-			await container.stop();
-			fs.rmSync(`./user-projects/${userEmail}`, { recursive: true });
-		}, 120000);
+		try {
+			console.log(`Socket disconnected: ${reason}`);
+			const timeout = setTimeout(async () => {
+				// clean ups
+				containerManager.removeShellSession(socket.id);
+				await container.stop();
+				if (fs.existsSync(`./user-projects/${userEmail}/${projectId}`))
+					fs.rmSync(`./user-projects/${userEmail}`, { recursive: true });
+			}, 120000);
 
-		socketTimeouts.set(userEmail + projectId, timeout);
-		socketContainers.set(userEmail + projectId, {
-			containerManager,
-			container,
-			shellSession,
-			shellStream,
-		});
+			socketTimeouts.set(userEmail + projectId, timeout);
+			socketContainers.set(userEmail + projectId, {
+				containerManager,
+				container,
+				shellSession,
+				shellStream,
+			});
+		} catch (error) {
+			console.error('Error during socket disconnect:', error);
+		}
 	});
 };

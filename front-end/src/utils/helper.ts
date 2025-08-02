@@ -51,7 +51,18 @@ export const updateFileNodeChildren = (
 ): FileNode[] => {
 	return fileNodes.map((node) => {
 		if (node.path === path) {
-			return { ...node, children: [...(node.children || []), ...children], isOpen: true }; // Update children and mark as open
+			// Always update children - merge new files with existing ones or replace completely
+			// This ensures new files created via terminal commands are reflected in the UI
+			return {
+				...node,
+				children: children.sort((a, b) => {
+					if (a.type !== b.type) {
+						return a.type === 'dir' ? -1 : 1;
+					}
+					return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+				}),
+				isOpen: true,
+			};
 		}
 		if (node.children) {
 			return {
@@ -61,4 +72,119 @@ export const updateFileNodeChildren = (
 		}
 		return node;
 	});
+};
+
+export const addFileToDirectory = (
+	fileNodes: FileNode[],
+	directoryPath: string,
+	newFile: FileNode
+): FileNode[] => {
+	return fileNodes.map((node) => {
+		if (node.path === directoryPath && node.type === 'dir') {
+			const existingChildren = node.children || [];
+			// Check if file already exists to prevent duplicates
+			const fileExists = existingChildren.some(
+				(child) => child.path === newFile.path
+			);
+			if (fileExists) {
+				return node; // Don't add duplicate
+			}
+
+			const updatedChildren = [...existingChildren, newFile].sort((a, b) => {
+				if (a.type !== b.type) {
+					return a.type === 'dir' ? -1 : 1;
+				}
+				return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+			});
+
+			return {
+				...node,
+				children: updatedChildren,
+				isOpen: true,
+			};
+		}
+		if (node.children) {
+			return {
+				...node,
+				children: addFileToDirectory(node.children, directoryPath, newFile),
+			};
+		}
+		return node;
+	});
+};
+
+export const toggleDirectoryOpen = (
+	fileNodes: FileNode[],
+	path: string
+): FileNode[] => {
+	return fileNodes.map((node) => {
+		if (node.path === path && node.type === 'dir') {
+			return { ...node, isOpen: !node.isOpen };
+		}
+		if (node.children) {
+			return {
+				...node,
+				children: toggleDirectoryOpen(node.children, path),
+			};
+		}
+		return node;
+	});
+};
+
+export const setDirectoryOpen = (
+	fileNodes: FileNode[],
+	path: string,
+	isOpen: boolean
+): FileNode[] => {
+	return fileNodes.map((node) => {
+		if (node.path === path && node.type === 'dir') {
+			return { ...node, isOpen };
+		}
+		if (node.children) {
+			return {
+				...node,
+				children: setDirectoryOpen(node.children, path, isOpen),
+			};
+		}
+		return node;
+	});
+};
+
+export const renameFileNode = (
+	fileNodes: FileNode[],
+	oldPath: string,
+	newName: string
+): FileNode[] => {
+	return fileNodes.map((node) => {
+		if (node.path === oldPath) {
+			const pathParts = oldPath.split('/');
+			pathParts[pathParts.length - 1] = newName;
+			const newPath = pathParts.join('/');
+			return { ...node, name: newName, path: newPath, id: newName };
+		}
+		if (node.children) {
+			return {
+				...node,
+				children: renameFileNode(node.children, oldPath, newName),
+			};
+		}
+		return node;
+	});
+};
+
+export const deleteFileNode = (
+	fileNodes: FileNode[],
+	pathToDelete: string
+): FileNode[] => {
+	return fileNodes
+		.filter((node) => node.path !== pathToDelete)
+		.map((node) => {
+			if (node.children) {
+				return {
+					...node,
+					children: deleteFileNode(node.children, pathToDelete),
+				};
+			}
+			return node;
+		});
 };

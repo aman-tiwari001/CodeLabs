@@ -108,3 +108,51 @@ export const updateContentOnStorageBucket = async (
 		console.error('Error updating content on storage bucket:', error);
 	}
 };
+
+export const deleteFileFromBucket = async (
+	filePath: string,
+	type: 'file' | 'dir'
+) => {
+	try {
+		// If it's a directory, recursively delete all files within it
+		if (type === 'dir') {
+			console.log(`Deleting directory: ${filePath}`);
+			const [files] = await bucket.getFiles({ prefix: filePath });
+			const deletePromises = files.map((file) => file.delete());
+			await Promise.all(deletePromises);
+			console.log(`Recursively deleted all files in directory: ${filePath}`);
+			return;
+		}
+		await bucket.file(filePath).delete();
+		console.log(`File deleted: ${filePath}`);
+	} catch (error) {
+		console.error('Error deleting file:', error);
+	}
+};
+
+export const renameFileInBucket = async (
+	filePath: string,
+	newPath: string,
+	type: 'file' | 'dir'
+) => {
+	try {
+		// If it's a directory, rename all files within it
+		if (type === 'dir') {
+			console.log(`Renaming directory: ${filePath} to ${newPath}`);
+			const [files] = await bucket.getFiles({ prefix: filePath });
+			const renamePromises = files.map((file) => {
+				const newFilePath = file.name.replace(filePath, newPath);
+				return file.move(newFilePath);
+			});
+			await Promise.all(renamePromises);
+			console.log(`Directory renamed: ${filePath} to ${newPath}`);
+			return;
+		}
+		const file = bucket.file(filePath);
+		const newFileName = filePath.replace(/\/$/, '');
+		await file.move(newPath);
+		console.log(`File renamed to: ${newFileName}`);
+	} catch (error) {
+		console.error('Error renaming file:', error);
+	}
+};

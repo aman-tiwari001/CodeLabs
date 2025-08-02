@@ -6,7 +6,15 @@ import { CodeTerminal } from '../components/Terminal';
 import { Tab, FileNode } from '../types';
 import { io } from 'socket.io-client';
 import useFileStore from '../store/fileStore';
-import { parseFileStructure, updateFileNodeChildren } from '../utils/helper';
+import {
+	parseFileStructure,
+	updateFileNodeChildren,
+	toggleDirectoryOpen,
+	renameFileNode,
+	deleteFileNode,
+	addFileToDirectory,
+	setDirectoryOpen,
+} from '../utils/helper';
 import useSocketStore from '../store/socketStore';
 import { useAuth0 } from '@auth0/auth0-react';
 import toast from 'react-hot-toast';
@@ -30,37 +38,136 @@ const IDE = () => {
 	const setSocket = useSocketStore((state: any) => state.setSocket);
 
 	const addFile = (node: FileNode, type: string, name: string) => {
-		if (type === 'file') {
-			const children: FileNode[] = [
-				{
-					id: name,
-					name,
-					type: 'file',
-					path: node.path + '/' + name,
-				},
-			];
-			console.log('Add file', children);
-			const updatedStr = updateFileNodeChildren(files, node.path, children);
-			setFiles(updatedStr);
-		} else {
-			const children: FileNode[] = [
-				{
-					id: name,
-					name,
-					type: 'dir',
-					path: node.path + '/' + name,
-				},
-			];
-			console.log('Add file', children);
-			const updatedStr = updateFileNodeChildren(files, node.path, children);
-			setFiles(updatedStr);
+		if (!name.trim()) {
+			toast.error('Name cannot be empty');
+			return;
 		}
+		if (!name.trim() || !/^[a-zA-Z0-9_.\s-]+$/.test(name)) {
+			toast.error(
+				'Name can only contain a-z, A-Z, 0-9, "_", "-", ".", and spaces'
+			);
+			return;
+		}
+		const newPath = node.path + '/' + name;
+
+		// Emit create event to server
+		socket.emit('create-file', { path: newPath, type }, (response: any) => {
+			if (response.success) {
+				// Create the new file/directory node
+				const newFileNode: FileNode = {
+					id: name,
+					name,
+					type: type as 'file' | 'dir',
+					path: newPath,
+				};
+
+				// Add the new file to the parent directory
+				const updatedFiles = addFileToDirectory(files, node.path, newFileNode);
+				setFiles(updatedFiles);
+
+				toast.success(`Created ${type} "${name}"`);
+			} else {
+				toast.error(response.error || `Failed to create ${type}`);
+			}
+		});
+	};
+
+	const renameFile = (node: FileNode, newName: string) => {
+		// restrict all special characters except underscore and hyphen
+		if (!newName.trim()) {
+			toast.error('Name cannot be empty');
+			return;
+		}
+		if (!newName.trim() || !/^[a-zA-Z0-9_.\s-]+$/.test(newName)) {
+			toast.error(
+				'Name can only contain a-z, A-Z, 0-9, "_", "-", ".", and spaces'
+			);
+			return;
+		}
+		const newPath = node.path.replace(/[^/]+$/, newName);
+		socket.emit(
+			'rename-file',
+			{ oldPath: node.path, newPath, type: node.type },
+			(response: any) => {
+				if (response.success) {
+					// Update local state
+					const updatedStructure = renameFileNode(files, node.path, newName);
+					setFiles(updatedStructure);
+
+					// Update any open tabs with the old path
+					const updatedTabs = tabs.map((tab) => {
+						if (tab.path === node.path) {
+							const pathParts = node.path.split('/');
+							pathParts[pathParts.length - 1] = newName;
+							const newPath = pathParts.join('/');
+							return { ...tab, name: newName, path: newPath, id: newName };
+						}
+						return tab;
+					});
+					setTabs(updatedTabs);
+
+					// Update active tab if it matches
+					if (activeTab && activeTab.path === node.path) {
+						const pathParts = node.path.split('/');
+						pathParts[pathParts.length - 1] = newName;
+						const newPath = pathParts.join('/');
+						setActiveTab({
+							...activeTab,
+							name: newName,
+							path: newPath,
+							id: newName,
+						});
+					}
+
+					toast.success(`Renamed to "${newName}"`);
+				} else {
+					toast.error(response.message || 'Failed to rename');
+				}
+			}
+		);
+	};
+
+	const deleteFile = (node: FileNode) => {
+		socket.emit(
+			'delete-file',
+			{ path: node.path, type: node.type },
+			(response: any) => {
+				if (response.success) {
+					const updatedStructure = deleteFileNode(files, node.path);
+					setFiles(updatedStructure);
+
+					// Close any open tabs for the deleted file/directory
+					const updatedTabs = tabs.filter(
+						(tab) => !tab.path.startsWith(node.path)
+					);
+					setTabs(updatedTabs);
+
+					// Update active tab if needed
+					if (activeTab && activeTab.path.startsWith(node.path)) {
+						setActiveTab(updatedTabs.length > 0 ? updatedTabs[0] : null);
+					}
+
+					toast.success(`Deleted "${node.name}"`);
+				} else {
+					toast.error(response.error || 'Failed to delete');
+				}
+			}
+		);
 	};
 
 	const handleTabClose = (id: string) => {
-		setTabs(tabs.filter((tab) => tab.id !== id));
+		const updatedTabs = tabs.filter((tab) => tab.id !== id);
+		setTabs(updatedTabs);
+
 		if (activeTab?.id === id) {
-			setActiveTab(tabs[0] || null);
+			if (updatedTabs.length > 0) {
+				const currentIndex = tabs.findIndex((tab) => tab.id === id);
+				const nextTab =
+					updatedTabs[Math.min(currentIndex, updatedTabs.length - 1)];
+				setActiveTab(nextTab);
+			} else {
+				setActiveTab(null);
+			}
 		}
 	};
 
@@ -69,7 +176,6 @@ const IDE = () => {
 			setUpdatingFile(true);
 			socket.emit('update-file-content', { filePath, content }, () => {
 				setUpdatingFile(false);
-				// toast.success('All changes synced');
 			});
 		}, 1000),
 		[socket]
@@ -84,69 +190,149 @@ const IDE = () => {
 	};
 
 	const refreshProjectStructure = () => {
-		socket.emit('refresh-project-structure', (data: any) => {
-			let formatStructure = data.structure.sort((a: any, b: any) => {
-				if (a.type === 'dir' && b.type === 'file') return -1;
-			});
-			setFiles(formatStructure);
-			console.log('Refreshed formatted structure: ', formatStructure);
+		// Get list of currently opened directories
+		const getOpenDirectories = (nodes: FileNode[]): string[] => {
+			const openDirs: string[] = [];
+			const traverse = (nodeList: FileNode[]) => {
+				nodeList.forEach((node) => {
+					if (node.type === 'dir' && node.isOpen) {
+						openDirs.push(node.path);
+						if (node.children) {
+							traverse(node.children);
+						}
+					}
+				});
+			};
+			traverse(nodes);
+			return openDirs;
+		};
+
+		const openDirectories = getOpenDirectories(files);
+
+		// Refresh root structure first
+		socket.emit('refresh-project-structure', (response: any) => {
+			if (response.success) {
+				let newStructure = parseFileStructure(response.structure);
+
+				// Reopen previously opened directories
+				openDirectories.forEach((dirPath) => {
+					newStructure = setDirectoryOpen(newStructure, dirPath, true);
+				});
+
+				setFiles(newStructure);
+
+				// Then refresh each opened directory's contents
+				openDirectories.forEach((dirPath) => {
+					socket.emit(
+						'fetch-folder-contents',
+						dirPath,
+						(folderData: { folder: any[] }) => {
+							const refreshedChildren = parseFileStructure(folderData.folder);
+							setFiles((currentFiles: FileNode[]) =>
+								updateFileNodeChildren(currentFiles, dirPath, refreshedChildren)
+							);
+						}
+					);
+				});
+
+				console.log(
+					'Refreshed project structure and',
+					openDirectories.length,
+					'opened directories'
+				);
+			} else {
+				toast.error(response.error || 'Failed to refresh project structure');
+			}
 		});
 	};
 
 	const fetchDirContents = (node: FileNode) => {
-		if (!node.isOpen && !node.children) {
+		// If directory is already open and has children, just toggle it closed
+		if (node.isOpen && node.children) {
+			const updatedStructure = toggleDirectoryOpen(files, node.path);
+			setFiles(updatedStructure);
+			return;
+		}
+
+		// If directory is closed but has children, just toggle it open
+		if (!node.isOpen && node.children) {
+			const updatedStructure = toggleDirectoryOpen(files, node.path);
+			setFiles(updatedStructure);
+			return;
+		}
+
+		// Only fetch contents if directory doesn't have children yet
+		if (!node.children) {
 			setFetchingDirContents(true);
-			console.log('Clicked Node: ', node);
+			console.log('Fetching contents for:', node.path);
 			socket.emit(
 				'fetch-folder-contents',
 				node.path,
-				(data: { folder: FileNode[] }) => {
-					console.log('fetched dir contents', data);
-					const parsedFiles = parseFileStructure(data.folder);
-					const updatedStructure = updateFileNodeChildren(
-						files,
-						node.path,
-						parsedFiles
-					);
-					console.log('Updated structure: ', updatedStructure);
-					setFiles(updatedStructure);
-
-					setFetchingDirContents(false);
+				(response: { success: boolean; folder: FileNode[]; error?: any }) => {
+					if (response.success) {
+						console.log('Fetched dir contents:', response);
+						const parsedFiles = parseFileStructure(response.folder);
+						const updatedStructure = updateFileNodeChildren(
+							files,
+							node.path,
+							parsedFiles
+						);
+						console.log('Updated structure:', updatedStructure);
+						setFiles(updatedStructure);
+						setFetchingDirContents(false);
+					} else {
+						toast.error(response.error || 'Failed to fetch directory contents');
+						setFetchingDirContents(false);
+					}
 				}
 			);
 		}
 	};
 
 	const fetchFileContents = (node: FileNode) => {
-		const file = node;
-		const existingTab = tabs.find((tab) => tab.id === file.id);
+		const existingTab = tabs.find((tab) => tab.id === node.id);
 
-		if (!node.content) {
-			setFetchingFileContents(true);
-			socket.emit(
-				'fetch-file-content',
-				node.path,
-				(data: { content: string }) => {
+		// If tab already exists, just activate it
+		if (existingTab) {
+			setActiveTab(existingTab);
+			return;
+		}
+
+		// If file has content cached, create tab with cached content
+		if (node.content) {
+			const newTab = {
+				id: node.id,
+				name: node.name,
+				content: node.content,
+				path: node.path,
+			};
+			setTabs([...tabs, newTab]);
+			setActiveTab(newTab);
+			return;
+		}
+
+		// Fetch content from server
+		setFetchingFileContents(true);
+		socket.emit(
+			'fetch-file-content',
+			node.path,
+			(response: { success: boolean; content: string; error?: any }) => {
+				if (response.success) {
 					setFetchingFileContents(false);
-					setActiveTab({
+					const newTab = {
 						id: node.id,
 						name: node.name,
-						content: data.content,
+						content: response.content,
 						path: node.path,
-					});
-					if (!existingTab)
-						setTabs([
-							...tabs,
-							{
-								id: node.id,
-								name: node.name,
-								content: data.content,
-								path: node.path,
-							},
-						]);
+					};
+					setActiveTab(newTab);
+					setTabs([...tabs, newTab]);
+				} else {
+					toast.error(response.error || 'Failed to fetch file content');
+					setFetchingFileContents(false);
 				}
-			);
-		}
+			}
+		);
 	};
 
 	useEffect(() => {
@@ -190,6 +376,8 @@ const IDE = () => {
 							<DirectoryExplorer
 								files={files}
 								onAddFile={addFile}
+								onRenameFile={renameFile}
+								onDeleteFile={deleteFile}
 								filesLoaded={filesLoaded}
 								fetchDirContents={fetchDirContents}
 								fetchFileContents={fetchFileContents}

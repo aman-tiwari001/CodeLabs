@@ -28,12 +28,18 @@ export const EditorContent: React.FC<Props> = ({
 
 				{/* Editor Content */}
 				{fetchingFileContents ? (
-					<Skeleton count={13} baseColor='#6366f1' highlightColor='#dbb4ff' width={800} className='mx-4 mt-4' />
+					<Skeleton
+						count={13}
+						baseColor='#374151'
+						highlightColor='#4B5563'
+						width={800}
+						className='mx-4 mt-4'
+					/>
 				) : (
 					<textarea
 						value={content}
 						onChange={(e) => onChange(e.target.value)}
-						className='flex-1 bg-gray-950 text-gray-300 p-4 text-lg resize-none focus:outline-none overflow-auto duration-100 transit'
+						className='flex-1 text-yellow-100 bg-gray-950 p-4 text-lg resize-none focus:outline-none overflow-auto duration-100 transit'
 						spellCheck={false}
 						style={{ lineHeight: '1.5' }}
 					/>

@@ -28,11 +28,11 @@ export const CodeEditor: React.FC<Props> = ({
 				{tabs.map((tab) => (
 					<div
 						key={tab.id}
-						className={`px-4 py-2 text-sm border-r border-gray-700 flex items-center gap-2 cursor-pointer
+						className={`px-4 rounded-none py-2 text-sm border-gray-600 border-[1px] flex items-center gap-2 cursor-pointer
               ${
 								tab === activeTab
-									? 'bg-gray-800'
-									: 'bg-gray-900 hover:bg-gray-800'
+									? 'bg-gradient-to-r from-violet-950 via-gray-950 to-black'
+									: 'bg-gray-800 hover:bg-gray-800'
 							}`}
 						onClick={() => onTabChange(tab)}
 					>
