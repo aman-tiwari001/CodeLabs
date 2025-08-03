@@ -23,7 +23,6 @@ const Home = () => {
 	const fetchProjects = async () => {
 		try {
 			const res = await getAllProjects();
-			console.log(res);
 			setProjects((res as { success: boolean; result: [] }).result);
 		} catch (error) {
 			console.log(error);

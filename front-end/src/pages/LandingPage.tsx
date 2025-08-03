@@ -16,15 +16,13 @@ const LandingPage = () => {
 		try {
 			await loginWithPopup();
 			const loginData = await getIdTokenClaims();
-			console.log(loginData);
-			const res = await syncUserWithDB({
+			await syncUserWithDB({
 				name: loginData?.name as string,
 				email: loginData?.email as string,
 				picture: loginData?.picture as string,
 				sub: loginData?.sub as string,
 				authToken: loginData?.__raw as string,
 			});
-			console.log(res);
 			navigate('/home');
 		} catch (error) {
 			console.log(error);
@@ -40,8 +38,8 @@ const LandingPage = () => {
 	return (
 		<main className='w-full flex flex-col min-h-screen'>
 			{/* Hero Section */}
-			<section className='w-full py-20 md:py-32 text-white contrast-125 bg-cover bg-[url(https://miro.medium.com/v2/resize:fit:1400/0*7VyEZgzwUhQMeBqb)]'>
-				<div className='container mx-auto px-4 sm:px-6 lg:px-8 '>
+			<section className='w-full text-white contrast-125 bg-cover bg-[url(https://miro.medium.com/v2/resize:fit:1400/0*7VyEZgzwUhQMeBqb)]'>
+				<div className='container mx-auto py-20 md:py-32 px-4 sm:px-6 lg:px-8 max-md:backdrop-brightness-[0.55] w-full h-full'>
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}

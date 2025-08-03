@@ -40,16 +40,12 @@ export const copyFolderInBucket = async (
 	destinationFolder: string
 ) => {
 	try {
-		// List files in the source folder including those in subdirectories
 		const [files] = await bucket.getFiles({ prefix: sourceFolder });
 		let fileCount = 0;
 
-		// Copy each file to the new destination while preserving the folder structure
 		const copyPromises = files.map(async (file) => {
-			// destination file path by replacing the source folder prefix
 			const destinationFilePath =
 				destinationFolder + file.name.substring(sourceFolder.length);
-			console.log('destinationFilePath : ', destinationFilePath);
 			await file.copy(bucket.file(destinationFilePath));
 			fileCount++;
 			console.log(`Copied ${file.name} to ${destinationFilePath}`);
@@ -64,7 +60,6 @@ export const copyFolderInBucket = async (
 
 export async function downloadFile(filePath: string, localFilePath: string) {
 	await bucket.file(filePath).download({ destination: localFilePath });
-	// console.log(`Downloaded: ${filePath} -> ${localFilePath}`);
 }
 
 // Function to download entire directory structure

@@ -23,7 +23,7 @@ const io = new Server(httpServer, {
 
 app.use(
 	cors({
-		origin: ['http://localhost:5173'],
+		origin: ['https://localhost:5173', 'http://localhost:5173'],
 		methods: ['GET', 'POST'],
 		credentials: true,
 	})

@@ -11,6 +11,8 @@ import { FileNode } from '../types';
 import Skeleton from 'react-loading-skeleton';
 import { VscNewFile } from 'react-icons/vsc';
 import { CgFolderAdd } from 'react-icons/cg';
+import { useAuth0 } from '@auth0/auth0-react';
+import toast from 'react-hot-toast';
 
 interface Props {
 	files: FileNode[];
@@ -21,6 +23,7 @@ interface Props {
 	fetchFileContents: (node: FileNode) => void;
 	fetchingDirContents: boolean;
 	filesLoaded: boolean;
+	projectId: string;
 }
 
 const FileTreeNode: React.FC<{
@@ -241,7 +244,9 @@ export const DirectoryExplorer: React.FC<Props> = ({
 	fetchDirContents,
 	fetchFileContents,
 	fetchingDirContents,
+	projectId
 }) => {
+	const { user } = useAuth0();
 	const createRootInput = (type: 'file' | 'dir', placeholder: string) => {
 		// Remove any existing input
 		const existingInput = document.getElementById('input-new-file-src');
@@ -276,14 +281,16 @@ export const DirectoryExplorer: React.FC<Props> = ({
 	};
 
 	const addToSrcDir = (name: string, type: 'file' | 'dir') => {
-		if (files.length === 0) return;
-
-		// Create a virtual root node for the workspace
-		const rootPath = files[0].path.split('/').slice(0, -1).join('/');
+		if (!user || !user.email) {
+			toast.error('Something went wrong');
+			return;
+		}
+		const rootPath = `./user-projects/${user?.email}/${projectId}`;
+		console.log('Adding to src dir:', rootPath, type);
 		const rootNode: FileNode = {
 			id: 'root',
 			name: 'root',
-			type: 'dir',
+			type : 'dir',
 			path: rootPath,
 		};
 

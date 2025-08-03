@@ -10,15 +10,13 @@ const LoginButton = () => {
 		try {
 			await loginWithPopup();
 			const loginData = await getIdTokenClaims();
-			console.log(loginData);
-			const res = await syncUserWithDB({
+			await syncUserWithDB({
 				name: loginData?.name as string,
 				email: loginData?.email as string,
 				picture: loginData?.picture as string,
 				sub: loginData?.sub as string,
 				authToken: loginData?.__raw as string,
 			});
-			console.log(res);
 			navigate('/home');
 		} catch (error) {
 			console.log(error);

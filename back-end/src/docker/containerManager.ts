@@ -43,7 +43,6 @@ export function validateCommand(cmd: string) {
 	}
 
 	const baseCommand = trimmedCmd.split(' ')[0];
-	console.log('Base command : ', baseCommand);
 
 	return ALLOWED_COMMANDS.includes(baseCommand);
 }

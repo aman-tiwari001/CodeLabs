@@ -13,12 +13,12 @@ import {
 	renameFileNode,
 	deleteFileNode,
 	addFileToDirectory,
-	setDirectoryOpen,
 } from '../utils/helper';
 import useSocketStore from '../store/socketStore';
 import { useAuth0 } from '@auth0/auth0-react';
 import toast from 'react-hot-toast';
 import { debounce } from 'lodash';
+import { Code2 } from 'lucide-react';
 
 const IDE = () => {
 	const { logout } = useAuth0();
@@ -27,6 +27,7 @@ const IDE = () => {
 	const [filesLoaded, setFilesLoaded] = useState<boolean>(false);
 	const [activeTab, setActiveTab] = useState<Tab | null>(null);
 	const [updatingFile, setUpdatingFile] = useState<boolean>(false);
+	const [isMobile, setIsMobile] = useState<boolean>(false);
 	const [fetchingDirContents, setFetchingDirContents] =
 		useState<boolean>(false);
 	const [fetchingFileContents, setFetchingFileContents] =
@@ -36,6 +37,8 @@ const IDE = () => {
 	const setFiles = useFileStore((state: any) => state.setFiles);
 	const socket = useSocketStore((state: any) => state.socket);
 	const setSocket = useSocketStore((state: any) => state.setSocket);
+
+	const projectId = window.location.pathname.split('/')[2]?.replace('%20', ' ');
 
 	const addFile = (node: FileNode, type: string, name: string) => {
 		if (!name.trim()) {
@@ -49,6 +52,7 @@ const IDE = () => {
 			return;
 		}
 		const newPath = node.path + '/' + name;
+		console.log('Creating new file:', newPath, type);
 
 		// Emit create event to server
 		socket.emit('create-file', { path: newPath, type }, (response: any) => {
@@ -190,56 +194,10 @@ const IDE = () => {
 	};
 
 	const refreshProjectStructure = () => {
-		// Get list of currently opened directories
-		const getOpenDirectories = (nodes: FileNode[]): string[] => {
-			const openDirs: string[] = [];
-			const traverse = (nodeList: FileNode[]) => {
-				nodeList.forEach((node) => {
-					if (node.type === 'dir' && node.isOpen) {
-						openDirs.push(node.path);
-						if (node.children) {
-							traverse(node.children);
-						}
-					}
-				});
-			};
-			traverse(nodes);
-			return openDirs;
-		};
-
-		const openDirectories = getOpenDirectories(files);
-
-		// Refresh root structure first
 		socket.emit('refresh-project-structure', (response: any) => {
 			if (response.success) {
 				let newStructure = parseFileStructure(response.structure);
-
-				// Reopen previously opened directories
-				openDirectories.forEach((dirPath) => {
-					newStructure = setDirectoryOpen(newStructure, dirPath, true);
-				});
-
 				setFiles(newStructure);
-
-				// Then refresh each opened directory's contents
-				openDirectories.forEach((dirPath) => {
-					socket.emit(
-						'fetch-folder-contents',
-						dirPath,
-						(folderData: { folder: any[] }) => {
-							const refreshedChildren = parseFileStructure(folderData.folder);
-							setFiles((currentFiles: FileNode[]) =>
-								updateFileNodeChildren(currentFiles, dirPath, refreshedChildren)
-							);
-						}
-					);
-				});
-
-				console.log(
-					'Refreshed project structure and',
-					openDirectories.length,
-					'opened directories'
-				);
 			} else {
 				toast.error(response.error || 'Failed to refresh project structure');
 			}
@@ -367,6 +325,32 @@ const IDE = () => {
 		return () => debouncedEmit.cancel?.();
 	}, [debouncedEmit]);
 
+	useEffect(() => {
+		const handleResize = () => {
+			setIsMobile(window.innerWidth <= 767);
+		};
+
+		handleResize();
+		window.addEventListener('resize', handleResize);
+		return () => window.removeEventListener('resize', handleResize);
+	}, []);
+
+	if (isMobile) {
+		return (
+			<div className='h-screen pt-16 overflow-hidden bg-gradient-to-br from-gray-950 via-black to-violet-950 text-white'>
+				<div className='flex flex-col px-10 items-center justify-center h-full'>
+					<h1 className='text-2xl font-bold text-violet-500 mb-4 flex gap-2 items-center'>
+						<Code2 color='white' size={27} /> IDE Not Available!
+					</h1>
+					<p className='text-lg text-justify'>
+						IDE is not available on mobile devices. You need to use a desktop or
+						laptop to access it.
+					</p>
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className='h-screen pt-16 overflow-hidden bg-gray-900 text-white'>
 			<PanelGroup direction='vertical'>
@@ -382,6 +366,7 @@ const IDE = () => {
 								fetchDirContents={fetchDirContents}
 								fetchFileContents={fetchFileContents}
 								fetchingDirContents={fetchingDirContents}
+								projectId={projectId}
 							/>
 						</Panel>
 						<PanelResizeHandle className='w-1 bg-gray-700 hover:bg-blue-500 transition-colors' />
@@ -390,7 +375,6 @@ const IDE = () => {
 								tabs={tabs}
 								activeTab={activeTab}
 								onTabChange={(tab: Tab) => {
-									console.log(tab);
 									setActiveTab(tab);
 								}}
 								onTabClose={handleTabClose}

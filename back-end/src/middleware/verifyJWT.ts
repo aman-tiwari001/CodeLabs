@@ -29,6 +29,7 @@ export const verifyJWT = async (
 	try {
 		const token =
 			req.cookies.auth_token || req.headers.authorization?.split(' ')[1];
+			console.log('Token:', token);
 		if (!token) {
 			const cookies = req.cookies;
 			if (cookies) {

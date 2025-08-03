@@ -22,7 +22,6 @@ export const findFileById = (files: File[], id: string): File | null => {
 
 export const parseFileStructure = (files: ServerFileType[]) => {
 	const updatedFiles: FileNode[] = [];
-	console.log('Files: ', files);
 	for (const file of files) {
 		updatedFiles.push({
 			id: file.name,
@@ -30,8 +29,6 @@ export const parseFileStructure = (files: ServerFileType[]) => {
 			type: file.type,
 			isOpen: false,
 			path: file.path,
-			// children? ,
-			// content?
 		});
 	}
 	return updatedFiles.sort((a, b) => {
@@ -87,7 +84,7 @@ export const addFileToDirectory = (
 				(child) => child.path === newFile.path
 			);
 			if (fileExists) {
-				return node; // Don't add duplicate
+				return node;
 			}
 
 			const updatedChildren = [...existingChildren, newFile].sort((a, b) => {
