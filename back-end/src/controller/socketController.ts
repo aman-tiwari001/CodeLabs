@@ -153,7 +153,7 @@ export const socketController = async (socket: any) => {
 
 	socket.on('refresh-project-structure', async (callback: Function) => {
 		try {
-			await new Promise(resolve => setTimeout(resolve, 100));
+			await new Promise((resolve) => setTimeout(resolve, 100));
 			const structure = await fetchFolderStructure(
 				`./user-projects/${userEmail}/${projectId}`
 			);
@@ -323,8 +323,9 @@ export const socketController = async (socket: any) => {
 			['npm', 'npx', 'mkdir', 'touch', 'rmdir', 'rm', 'cp', 'ls'].includes(
 				command.trim().split(' ')[0]
 			)
-		){
-			callback();}
+		) {
+			callback();
+		}
 	});
 	socket.on('disconnect', async (reason: string) => {
 		try {
@@ -334,7 +335,9 @@ export const socketController = async (socket: any) => {
 				containerManager.removeShellSession(socket.id);
 				await container.stop();
 				if (fs.existsSync(`./user-projects/${userEmail}/${projectId}`))
-					fs.rmSync(`./user-projects/${userEmail}`, { recursive: true });
+					fs.rmSync(`./user-projects/${userEmail}/${projectId}`, {
+						recursive: true,
+					});
 			}, 120000);
 
 			socketTimeouts.set(userEmail + projectId, timeout);

@@ -28,6 +28,7 @@ const IDE = () => {
 	const [activeTab, setActiveTab] = useState<Tab | null>(null);
 	const [updatingFile, setUpdatingFile] = useState<boolean>(false);
 	const [isMobile, setIsMobile] = useState<boolean>(false);
+	const [isError, setIsError] = useState<boolean>(false);
 	const [fetchingDirContents, setFetchingDirContents] =
 		useState<boolean>(false);
 	const [fetchingFileContents, setFetchingFileContents] =
@@ -65,9 +66,25 @@ const IDE = () => {
 					path: newPath,
 				};
 
-				// Add the new file to the parent directory
-				const updatedFiles = addFileToDirectory(files, node.path, newFileNode);
-				setFiles(updatedFiles);
+				// Check if this is a root-level creation (node.id === 'root')
+				if (node.id === 'root') {
+					// Add directly to the files array for root-level creation
+					const updatedFiles = [...files, newFileNode].sort((a, b) => {
+						if (a.type !== b.type) {
+							return a.type === 'dir' ? -1 : 1;
+						}
+						return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+					});
+					setFiles(updatedFiles);
+				} else {
+					// Add the new file to the parent directory for nested creation
+					const updatedFiles = addFileToDirectory(
+						files,
+						node.path,
+						newFileNode
+					);
+					setFiles(updatedFiles);
+				}
 
 				toast.success(`Created ${type} "${name}"`);
 			} else {
@@ -200,6 +217,7 @@ const IDE = () => {
 				setFiles(newStructure);
 			} else {
 				toast.error(response.error || 'Failed to refresh project structure');
+				setIsError(!isError);
 			}
 		});
 	};
@@ -241,6 +259,7 @@ const IDE = () => {
 					} else {
 						toast.error(response.error || 'Failed to fetch directory contents');
 						setFetchingDirContents(false);
+						setIsError(!isError);
 					}
 				}
 			);
@@ -288,6 +307,7 @@ const IDE = () => {
 				} else {
 					toast.error(response.error || 'Failed to fetch file content');
 					setFetchingFileContents(false);
+					setIsError(!isError);
 				}
 			}
 		);
@@ -319,7 +339,7 @@ const IDE = () => {
 			newSocket.disconnect();
 			console.log('Disconnected from the server');
 		};
-	}, [setFiles, setSocket, logout]);
+	}, [setFiles, setSocket, logout, isError]);
 
 	useEffect(() => {
 		return () => debouncedEmit.cancel?.();

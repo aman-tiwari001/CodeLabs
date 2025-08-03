@@ -29,14 +29,15 @@ export const verifyJWT = async (
 	try {
 		const token =
 			req.cookies.auth_token || req.headers.authorization?.split(' ')[1];
-			console.log('Token:', token);
 		if (!token) {
 			const cookies = req.cookies;
-			if (cookies) {
-				Object.keys(cookies).forEach((cookieName) => {
-					res.clearCookie(cookieName);
-				});
-			}
+			// if (cookies) {
+			// 	Object.keys(cookies).forEach((cookieName) => {
+			// 		res.clearCookie(cookieName);
+			// 	});
+			// }
+			res.clearCookie('auth_token');
+			res.clearCookie('access_token');
 			res.status(400).json({ success: false, message: 'Token not provided' });
 			return;
 		}
@@ -52,9 +53,11 @@ export const verifyJWT = async (
 		console.log('Invalid token', error);
 		const cookies = req.cookies;
 		if (cookies) {
-			Object.keys(cookies).forEach((cookieName) => {
-				res.clearCookie(cookieName);
-			});
+			res.clearCookie('auth_token');
+			res.clearCookie('access_token');
+			// Object.keys(cookies).forEach((cookieName) => {
+			// 	res.clearCookie(cookieName);
+			// });
 		}
 		res.status(500).json({ success: false, message: error.message });
 	}
