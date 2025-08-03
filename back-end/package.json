@@ -1,39 +1,46 @@
 {
-	"name": "codelabs-backend",
-	"version": "1.0.0",
-	"main": "index.js",
-	"scripts": {
-		"build": "npx tsc",
-		"start": "node dist/index.js",
-		"dev": "ts-node-dev -r dotenv/config src/index.ts"
-	},
-	"author": "Aman Tiwari",
-	"license": "ISC",
-	"description": "",
-	"dependencies": {
-		"@types/cookie-parser": "^1.4.8",
-		"@types/dockerode": "^3.3.32",
-		"cookie-parser": "^1.4.7",
-		"cors": "^2.8.5",
-		"dockerode": "^4.0.2",
-		"dotenv": "^16.4.5",
-		"express": "^4.21.1",
-		"firebase": "^11.0.1",
-		"firebase-admin": "^12.7.0",
-		"jsonwebtoken": "^9.0.2",
-		"jwks-rsa": "^3.1.0",
-		"mongodb": "^6.10.0",
-		"mongoose": "^8.8.0",
-		"nodemon": "^3.1.7",
-		"socket.io": "^4.8.1"
-	},
-	"devDependencies": {
-		"@types/axios": "^0.9.36",
-		"@types/cors": "^2.8.17",
-		"@types/express": "^5.0.0",
-		"@types/firebase": "^2.4.32",
-		"@types/mongoose": "^5.11.96",
-		"ts-node-dev": "^2.0.0",
-		"typescript": "^5.6.3"
-	}
+  "name": "codelabs-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev -r dotenv/config src/index.ts",
+    "lint": "eslint ."
+  },
+  "author": "Aman Tiwari",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@types/cookie-parser": "^1.4.8",
+    "@types/dockerode": "^3.3.32",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dockerode": "^4.0.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "firebase": "^11.0.1",
+    "firebase-admin": "^12.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.1.0",
+    "mongodb": "^6.10.0",
+    "mongoose": "^8.8.0",
+    "nodemon": "^3.1.7",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.32.0",
+    "@types/axios": "^0.9.36",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/firebase": "^2.4.32",
+    "@types/mongoose": "^5.11.96",
+    "eslint": "^9.32.0",
+    "globals": "^16.3.0",
+    "jiti": "^2.5.1",
+    "prettier": "3.6.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.38.0"
+  }
 }
