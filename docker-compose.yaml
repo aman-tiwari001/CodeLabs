@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: dockerfile
+    ports:
+      - '5173:5173'
+    environment:
+      - NODE_ENV=development
+    networks:
+      - app-network
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./back-end
+      dockerfile: dockerfile
+    ports:
+      - '5000:5000'
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./user-projects:/app/user-projects
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  user-projects:

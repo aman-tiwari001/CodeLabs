@@ -1,0 +1,58 @@
+name: Deploy CodeLabs to Azure VM (CI/CD)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.18.0'
+        cache: 'npm'
+
+    - name: Install and build frontend
+      run: |
+        cd front-end
+        npm ci
+        npm run build
+
+    - name: Deploy to Azure VM
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Navigate to app directory
+          cd /var/www/codelabs
+          
+          # Pull latest code
+          git pull origin main || git clone https://github.com/aman-tiwari001/CodeLabs.git .
+          
+          # Stop existing application
+          pm2 stop back-end || true
+          
+          # Install backend dependencies
+          cd back-end
+          npm ci --only=production
+          
+          # Install and build frontend
+          cd ../front-end
+          npm ci
+          npm run build
+          
+          # Start application with PM2 (it will use existing .env files)
+          cd /var/www/codelabs/back-end
+          pm2 start index.js --name "back-end"
+          pm2 save
+          
+          # Restart nginx
+          sudo systemctl reload nginx
