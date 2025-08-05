@@ -38,11 +38,12 @@ jobs:
           git pull origin main || git clone https://github.com/aman-tiwari001/CodeLabs.git .
           
           # Stop existing application
-          pm2 stop back-end || true
+          pm2 stop codelabs-backend || true
           
           # Install backend dependencies
           cd back-end
           npm ci --only=production
+          npm run build
           
           # Install and build frontend
           cd ../front-end
@@ -51,7 +52,7 @@ jobs:
           
           # Start application with PM2 (it will use existing .env files)
           cd /var/www/codelabs/back-end
-          pm2 start index.js --name "back-end"
+          pm2 start dist/index.js --name "codelabs-backend"
           pm2 save
           
           # Restart nginx

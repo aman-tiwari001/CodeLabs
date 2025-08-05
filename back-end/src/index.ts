@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import cors from 'cors';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
