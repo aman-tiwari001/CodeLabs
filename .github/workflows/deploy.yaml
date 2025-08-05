@@ -41,7 +41,7 @@ jobs:
           
           # Install backend dependencies
           cd back-end
-          npm ci --only=production
+          npm ci
           npm run build
           
           # Install and build frontend
