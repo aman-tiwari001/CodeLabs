@@ -18,8 +18,8 @@ COPY . .
 RUN npm run build
 
 # Create a non-root user
-RUN groupadd -g 1001 nodejs && \
-    useradd -r -u 1001 -g nodejs nodejs
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S -u 1001 -G nodejs nodejs
 
 # Create user-projects directory and set permissions
 RUN mkdir -p /app/user-projects && \
