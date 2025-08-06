@@ -38,7 +38,7 @@ export const verifyJWT = async (
       // }
       res.clearCookie("auth_token");
       res.clearCookie("access_token");
-      res.status(400).json({ success: false, message: "Token not provided" });
+      res.status(401).json({ success: false, message: "Token not provided" });
       return;
     }
     const header = decode(token, { complete: true })?.header;

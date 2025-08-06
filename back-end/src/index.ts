@@ -1,19 +1,23 @@
 import 'dotenv/config';
-import cors from 'cors';
-import { Server } from 'socket.io';
-import { createServer } from 'http';
-import cookieParser from 'cookie-parser';
 import express, { Response } from 'express';
-import { getAllProjects, initializeProject } from './controller/project';
-import { handleAuth } from './controller/user';
+import cors from 'cors';
+import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import connectDB from './config/db';
-import { verifyJWT } from './middleware/verifyJWT';
-import { setCookie } from './middleware/setCookie';
+import { handleAuth } from './controller/user';
+import { getAllProjects, initializeProject } from './controller/project';
 import { socketController } from './controller/socketController';
+import { setCookie } from './middleware/setCookie';
+import { verifyJWT } from './middleware/verifyJWT';
 
+// Initialize Express app
 const app = express();
 const port = process.env.PORT || 5000;
 const httpServer = createServer(app);
+
+// Configure WebSocket server
 const io = new Server(httpServer, {
 	cors: {
 		origin: [
@@ -26,6 +30,7 @@ const io = new Server(httpServer, {
 	},
 });
 
+// Configure CORS middleware
 app.use(
 	cors({
 		origin: [
@@ -38,11 +43,15 @@ app.use(
 	})
 );
 
+// Connect to database
 connectDB();
 
+// Middlewares
+app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(express.json());
 
+// Routes
 app.get('/', (_, res: Response) => {
 	res.status(200).send('Welcome to the CodeLabs 🚀');
 });
@@ -59,6 +68,7 @@ app.post('/api/auth', verifyJWT, setCookie, handleAuth);
 app.post('/api/project', verifyJWT, initializeProject);
 app.get('/api/projects', verifyJWT, getAllProjects);
 
+// 404 Not Found handler
 app.all('*', (_, res: Response) => {
 	res.status(404).send({
 		error: 'Route not found',
@@ -66,8 +76,10 @@ app.all('*', (_, res: Response) => {
 	});
 });
 
+// WebSocket connection handler
 io.on('connection', socketController);
 
+// Start HTTP server
 httpServer.listen(port, () => {
 	console.log(`✅ Server is running on port ${port}`);
 });

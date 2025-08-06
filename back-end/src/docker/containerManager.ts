@@ -56,7 +56,7 @@ export class ContainerManager {
       .replace(/\\/g, "/");
     console.log("Project path : ", projPath);
     return await docker.createContainer({
-      Image: "node:latest",
+      Image: "node:22-alpine",
       Cmd: ["/bin/bash"],
       Tty: true,
       OpenStdin: true,

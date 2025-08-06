@@ -15,7 +15,7 @@ export const setCookie = async (
     });
   } else {
     const name = 4;
-    res.status(400).json({ success: false, message: "Token not provided" });
+    res.status(401).json({ success: false, message: "Token not provided" });
     return;
   }
   next();
