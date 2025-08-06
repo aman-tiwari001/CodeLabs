@@ -51,34 +51,39 @@ export function validateCommand(cmd: string) {
 export class ContainerManager {
   private shellSessions: Map<string, Docker.Exec> = new Map();
   async createContainer(userEmail: string, projectId: string) {
-    const projPath = path
-      .join(__dirname, "../../user-projects", userEmail, projectId)
-      .replace(/\\/g, "/");
-    console.log("Project path : ", projPath);
-    return await docker.createContainer({
-      Image: "node:22-alpine",
-      Cmd: ["/bin/bash"],
-      Tty: true,
-      OpenStdin: true,
-      AttachStdin: true,
-      AttachStdout: true,
-      AttachStderr: true,
-      WorkingDir: `/${projectId}`,
-      User: "root",
-      HostConfig: {
-        Binds: [`${projPath}:/${projectId}`],
-        Memory: 512 * 1024 * 1024, // 512MB limit
-        MemorySwap: 1024 * 1024 * 1024, // 1GB swap
-        NetworkMode: "bridge", // Enable internet connection
-        AutoRemove: true,
-      },
-      Env: [
-        "PS1=\\w\\$ ",
-        "TERM=xterm-256color",
-        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/lib/node_modules/.bin",
-        "HOME=/root",
-      ],
-    });
+    try {
+      const projPath = path
+        .join(__dirname, "../../user-projects", userEmail, projectId)
+        .replace(/\\/g, "/");
+      console.log("Project path : ", projPath);
+      return await docker.createContainer({
+        Image: "node:latest",
+        Cmd: ["/bin/bash"],
+        Tty: true,
+        OpenStdin: true,
+        AttachStdin: true,
+        AttachStdout: true,
+        AttachStderr: true,
+        WorkingDir: `/${projectId}`,
+        User: "root",
+        HostConfig: {
+          Binds: [`${projPath}:/${projectId}`],
+          Memory: 512 * 1024 * 1024, // 512MB limit
+          MemorySwap: 1024 * 1024 * 1024, // 1GB swap
+          NetworkMode: "bridge", // Enable internet connection
+          AutoRemove: true,
+        },
+        Env: [
+          "PS1=\\w\\$ ",
+          "TERM=xterm-256color",
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/lib/node_modules/.bin",
+          "HOME=/root",
+        ],
+      });
+    } catch (error) {
+      console.error("Failed to create container:", error);
+      throw error;
+    }
   }
   async createShellSession(container: Docker.Container, sessionId: string) {
     const exec = await container.exec({
