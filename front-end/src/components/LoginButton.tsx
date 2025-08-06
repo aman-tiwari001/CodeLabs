@@ -25,7 +25,7 @@ const LoginButton = () => {
 
   return (
     <button
-      className="max-md:text-sm rounded-full px-5 py-2"
+      className="max-md:text-sm rounded-full bg-black text-white px-5 py-2"
       onClick={handleLogin}
     >
       Login

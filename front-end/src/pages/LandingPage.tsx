@@ -66,74 +66,79 @@ const LandingPage = () => {
       </section>
 
       {/* Features */}
-      <section className="p-10 gradient rounded-t-[30px] flex flex-col items-center justify-center gap-5">
+      <section className="p-10 text-white gradient rounded-t-[30px] flex flex-col items-center justify-center gap-5">
         <h2 className="text-4xl max-md:text-3xl mb-7 text-center">Features</h2>
         <div className="flex items-center justify-center flex-wrap gap-7">
-          <motion.div
-            className="h-[150px] w-[260px] border-4 rounded-xl p-4 border-white"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h3 className="text-xl flex font-bold mb-2 items-center gap-2">
-              <FaCode size={32} /> Editor
-            </h3>
-            <p>
-              Write and edit your code with ease using our powerful code editor.
-            </p>
-          </motion.div>
-          <motion.div
-            className="h-[150px] w-[260px] border-4 rounded-xl p-4 border-white"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h3 className="text-xl flex font-bold mb-2 items-center gap-2">
-              <BiTerminal size={32} />
-              Built in Terminal
-            </h3>
-            <p>
-              Access a fully integrated terminal to run your commands and
-              scripts.
-            </p>
-          </motion.div>
-          <motion.div
-            className="h-[150px] w-[260px] border-4 rounded-xl p-4 border-white"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h3 className="text-xl flex font-bold mb-2 items-center gap-2">
-              <BiFolder size={32} />
-              Directory Explorer
-            </h3>
-            <p>
-              An explorer for easily navigating across the project codebase.
-            </p>
-          </motion.div>
-          <motion.div
-            className="h-[150px] w-[260px] border-4 rounded-xl p-4 border-white"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h3 className="text-xl flex font-bold mb-2 items-center gap-2">
-              <GrTechnology size={32} />
-              Multiple Tech Stacks
-            </h3>
-            <p>We support multiple tech stacks and frameworks.</p>
-          </motion.div>
-          <motion.div
-            className="h-[150px] w-[260px] border-4 rounded-xl p-4 border-white"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h3 className="text-xl flex font-bold mb-2 items-center gap-2">
-              <BiCloud size={32} /> Cloud Syncing
-            </h3>
-            <p>All your projects are automatically saved to cloud.</p>
-          </motion.div>
+            <motion.div
+              className="h-[150px] w-[260px] border-4 rounded-xl p-4 border-white"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              whileHover={{ y: -10 }}
+            >
+              <h3 className="text-xl flex font-bold mb-2 items-center gap-2">
+                <FaCode size={32} /> Editor
+              </h3>
+              <p>
+                Write and edit your code with ease using our powerful code editor.
+              </p>
+            </motion.div>
+            <motion.div
+              className="h-[150px] w-[260px] border-4 rounded-xl p-4 border-white"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              whileHover={{ y: -10 }}
+            >
+              <h3 className="text-xl flex font-bold mb-2 items-center gap-2">
+                <BiTerminal size={32} />
+                Built in Terminal
+              </h3>
+              <p>
+                Access a fully integrated terminal to run your commands and
+                scripts.
+              </p>
+            </motion.div>
+            <motion.div
+              className="h-[150px] w-[260px] border-4 rounded-xl p-4 border-white"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              whileHover={{ y: -10 }}
+            >
+              <h3 className="text-xl flex font-bold mb-2 items-center gap-2">
+                <BiFolder size={32} />
+                Directory Explorer
+              </h3>
+              <p>
+                An explorer for easily navigating across the project codebase.
+              </p>
+            </motion.div>
+            <motion.div
+              className="h-[150px] w-[260px] border-4 rounded-xl p-4 border-white"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              whileHover={{ y: -10 }}
+            >
+              <h3 className="text-xl flex font-bold mb-2 items-center gap-2">
+                <GrTechnology size={32} />
+                Multiple Tech Stacks
+              </h3>
+              <p>We support multiple tech stacks and frameworks.</p>
+            </motion.div>
+            <motion.div
+              className="h-[150px] w-[260px] border-4 rounded-xl p-4 border-white"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              whileHover={{ y: -10 }}
+            >
+              <h3 className="text-xl flex font-bold mb-2 items-center gap-2">
+                <BiCloud size={32} /> Cloud Syncing
+              </h3>
+              <p>All your projects are automatically saved to cloud.</p>
+            </motion.div>
         </div>
       </section>
 
@@ -151,7 +156,7 @@ const LandingPage = () => {
                 <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
                   <FaLaptopCode size={24} /> CodeLabs
                 </h3>
-                <p className="text-gray-300 text-justify">
+                <p className="text-gray-300 text-left">
                   Your powerful online IDE for all your development needs. Code
                   anywhere and anytime.
                 </p>
