@@ -11,6 +11,7 @@ import { getAllProjects, initializeProject } from './controller/project';
 import { socketController } from './controller/socketController';
 import { setCookie } from './middleware/setCookie';
 import { verifyJWT } from './middleware/verifyJWT';
+import { askAI } from './controller/ai';
 
 // Initialize Express app
 const app = express();
@@ -67,6 +68,7 @@ app.get('/health', (_, res: Response) => {
 app.post('/api/auth', verifyJWT, setCookie, handleAuth);
 app.post('/api/project', verifyJWT, initializeProject);
 app.get('/api/projects', verifyJWT, getAllProjects);
+app.post('/api/ai/ask', verifyJWT, askAI);
 
 // 404 Not Found handler
 app.all('*', (_, res: Response) => {

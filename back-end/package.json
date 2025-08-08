@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google/genai": "^1.13.0",
     "@types/cookie-parser": "^1.4.8",
     "@types/dockerode": "^3.3.32",
     "@types/morgan": "^1.9.10",

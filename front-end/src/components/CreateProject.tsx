@@ -81,7 +81,7 @@ const CreateProject = ({ setShowCreateProject }: CreateProjectProps) => {
             <option value="react">React</option>
             <option value="node">Node</option>
             <option value="express">Express</option>
-            <option value="mern">MERN</option>
+            {/* <option value="mern">MERN</option> */}
             <option value="nextjs">NextJS</option>
           </select>
           <button

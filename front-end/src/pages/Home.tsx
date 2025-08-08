@@ -36,7 +36,7 @@ const Home = () => {
     <main className="mt-24 px-10">
       <section>
         <h2 className="text-3xl mb-7">Your Projects</h2>
-        <div className="flex flex-wrap gap-10 items-center justify-start max-md:justify-center">
+        <div className="flex flex-wrap gap-10 items-center justify-start max-md:justify-start">
           <div
             className="flex flex-col items-center hover:scale-110 duration-300 justify-center cursor-pointer bg-white hover:gradient p-2 rounded-xl text-black w-[170px] h-[208px] max-md:w-[130px]"
             onClick={() => {
