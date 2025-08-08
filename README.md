@@ -104,6 +104,7 @@ graph LR
 - MongoDB
 - Firebase account
 - Auth0 account
+- Gemini API key
 
 ### Installation
 

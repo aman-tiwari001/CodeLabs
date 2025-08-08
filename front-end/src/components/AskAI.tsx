@@ -27,7 +27,10 @@ const AskAI = () => {
 			const newMessage: IMessage = {
 				sender: 'user',
 				message: question,
-				timestamp: new Date().toDateString(),
+				timestamp: new Date().toLocaleTimeString([], {
+					hour: '2-digit',
+					minute: '2-digit',
+				}),
 			};
 
 			setMessages([...messages, newMessage]);
@@ -42,7 +45,10 @@ const AskAI = () => {
 				{
 					sender: 'ai',
 					message: res.answer,
-					timestamp: new Date().toDateString(),
+					timestamp: new Date().toLocaleTimeString([], {
+						hour: '2-digit',
+						minute: '2-digit',
+					}),
 				},
 			]);
 		} catch (error) {
@@ -52,7 +58,10 @@ const AskAI = () => {
 				{
 					sender: 'ai',
 					message: 'Sorry, I could not process your request at the moment.',
-					timestamp: new Date().toDateString(),
+					timestamp: new Date().toLocaleTimeString([], {
+						hour: '2-digit',
+						minute: '2-digit',
+					}),
 				},
 			]);
 		} finally {
@@ -104,24 +113,18 @@ const AskAI = () => {
 														</div>
 														<div
 															className={`max-w-xs md:max-w-md p-3 rounded-2xl shadow-md hide-scrollbar overflow-x-scroll w-full
-            									${isUser ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-800 text-gray-100 rounded-bl-none'}
+            									${isUser ? 'bg-violet-600/30 text-white rounded-br-none' : 'bg-gray-800/70 text-gray-100 rounded-bl-none'}
           									`}
 														>
 															<Markdown>{msg.message}</Markdown>
 															<div
 																className={`text-xs mt-1 ${
 																	isUser
-																		? 'text-blue-200 text-right'
+																		? 'text-violet-300 text-right'
 																		: 'text-gray-400 text-left'
 																}`}
 															>
-																{new Date(msg.timestamp).toLocaleTimeString(
-																	[],
-																	{
-																		hour: '2-digit',
-																		minute: '2-digit',
-																	}
-																)}
+																{msg.timestamp}
 															</div>
 														</div>
 													</div>
@@ -143,7 +146,7 @@ const AskAI = () => {
 								</div>
 							)}
 						</div>
-						<div className='flex items-center gap-2 bg-gray-800 p-2 rounded-lg'>
+						<div className='flex items-center gap-2 bg-gray-800/80 p-2 rounded-lg'>
 							<textarea
 								value={question}
 								readOnly={loading}
