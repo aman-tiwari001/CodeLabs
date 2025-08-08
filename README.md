@@ -10,6 +10,7 @@ A modern, full-stack cloud IDE that enables developers to create, edit, and run 
 - **File Management** - Complete file explorer with create, rename, delete operations
 - **Integrated Code Editor** - Powerful code edior that sync with cloud in real-time
 - **Browser Terminal** - Full terminal access with Docker containerization
+- **AI Chat Bot** - Integrated AI chat bot powered by Gemini for coding queries
 - **Authentication** - Secure login with Auth0 auth library
 - **Cloud Storage** - Projects stored in Google Firebase Cloud Storage
 - **Real-time Connection** - WebSockets for real-time persistent connection with the server
@@ -37,6 +38,12 @@ A modern, full-stack cloud IDE that enables developers to create, edit, and run 
 
 - ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat&logo=mongodb&logoColor=white) **MongoDB** - Database
 - ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat&logo=firebase&logoColor=black) **Firebase Storage** - File storage
+
+### AI Integration
+- ![Google Gemini](https://img.shields.io/badge/Google_Gemini-4285F4?style=flat&logo=google&logoColor=white) **Gemini API** - AI chat bot for coding queries
+- ![LLM](https://img.shields.io/badge/LLM-000000?style=flat&logo=llm&logoColor=white) **Large Language Model** - gemini-2.5-flash
+
+
 
 ### Authentication & Deployment
 
@@ -137,12 +144,15 @@ messagingSenderId=#
 appId=#
 measurementId=#
 
+GEMINI_API_KEY=#
+
 ## Add your Firebase service account JSON as fb_secrets.json in config inside back-end/src/config
 
 # Frontend (.env)
 VITE_SERVER_URL=http://localhost:5000
 VITE_AUTH0_DOMAIN=#
 VITE_AUTH0_CLIENT_ID=#
+VITE_REDIRECT_URI=http://localhost:5173/home
 ```
 
 5. **Run with Docker Compose**
