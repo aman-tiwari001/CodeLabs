@@ -1,58 +1,160 @@
-name: Deploy CodeLabs to Azure VM (CI/CD)
+name: Deploy CodeLabs to GCP VM (Docker CI/CD)
 
+# TRIGGER: When code is pushed to main branch
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+  workflow_dispatch: # NEW: Allows manual trigger from GitHub UI (useful for re-deploys)
+
+# GLOBAL VARIABLES: Available to all jobs
+env:
+  FRONTEND_IMAGE: amantiwari001/codelabs-frontend
+  BACKEND_IMAGE: amantiwari001/codelabs-backend
+  # CHANGE: Hardcoded your Docker Hub username (replace if different)
 
 jobs:
-  deploy:
+  # =============================================
+  # JOB 1: BUILD AND PUSH DOCKER IMAGES
+  # =============================================
+  # NEW: Build Docker images and push to Docker Hub
+  # WHY: Images are portable, no need to install Node/npm on VM
+  build-and-push:
+    name: Build & Push Docker Images
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      # STEP 1: Get code from repo
+      # KEPT: Same as before, need source code
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22.18.0'
+      # NEW: Setup Docker Buildx
+      # WHY: Enables build caching, faster subsequent builds
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Install and build frontend
-      run: |
-        cd front-end
-        npm ci
-        npm run build
+      # NEW: Login to Docker Hub
+      # WHY: Need authentication to push images
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Deploy to Azure VM
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.VM_HOST }}
-        username: ${{ secrets.VM_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          # Navigate to app directory
-          cd /var/www/codelabs
-          
-          # Pull latest code
-          git pull origin main || git clone https://github.com/aman-tiwari001/CodeLabs.git .
-          
-          # Stop existing application
-          pm2 stop codelabs-backend || true
-          
-          # Install backend dependencies
-          cd back-end
-          npm ci
-          npm run build
-          
-          # Install and build frontend
-          cd ../front-end
-          npm ci
-          npm run build
-          
-          # Start application with PM2 (it will use existing .env files)
-          cd /var/www/codelabs/back-end
-          pm2 start dist/index.js --name "codelabs-backend"
-          pm2 save
-          
-          # Restart nginx
-          sudo systemctl reload nginx
+      # NEW: Build and push Frontend image
+      # WHY: Creates portable image with app baked in
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./front-end
+          file: ./front-end/dockerfile
+          push: true
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:latest
+            ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+          # latest = easy to pull, sha = enables rollback
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # WHY: Caches layers, 2nd build is much faster
+
+      # NEW: Build and push Backend image
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./back-end
+          file: ./back-end/dockerfile
+          push: true
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:latest
+            ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # =============================================
+  # JOB 2: DEPLOY TO GCP VM
+  # =============================================
+  deploy:
+    name: Deploy to GCP VM
+    needs: build-and-push # NEW: Wait for images to be ready
+    runs-on: ubuntu-latest
+
+    steps:
+      # Get compose file to copy to VM
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # NEW: Copy docker-compose file to VM
+      # WHY: VM needs to know how to run the containers
+      - name: Copy docker-compose to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: 'docker-compose.yaml'
+          target: '~/codelabs'
+
+      # CHANGED: Complete rewrite of SSH deployment script
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e  # Exit immediately if any command fails
+
+            echo "🚀 Starting deployment..."
+            cd ~/codelabs
+
+            # ----------------------------------------
+            # NEW: No git needed - images contain everything
+            # WHY: Faster, cleaner, no git credentials on VM
+            # ----------------------------------------
+
+            # ----------------------------------------
+            # NEW: docker-compose down
+            # WHY: Using Docker instead of PM2
+            # ----------------------------------------
+
+            # ----------------------------------------
+            # NEW: docker pull (pre-built images)
+            # WHY: No Node.js needed on VM, much faster
+            # ----------------------------------------
+
+            # Login to Docker Hub
+            echo "🔐 Logging into Docker Hub..."
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+            # Pull latest images (fast - only downloads changed layers)
+            echo "📥 Pulling latest images..."
+            docker-compose pull
+
+            # Stop old containers
+            echo "🛑 Stopping old containers..."
+            docker-compose down || true
+
+            # Start new containers
+            echo "✅ Starting new containers..."
+            docker-compose up -d
+
+            # ----------------------------------------
+            # NEW: docker-compose up -d
+            # WHY: Docker manages the processes now
+            # ----------------------------------------
+
+            # ----------------------------------------
+            # NEW: Not needed - frontend container serves itself
+            # WHY: Nginx was for serving static files, 
+            #      now frontend container does that
+            # ----------------------------------------
+
+            # Show status
+            echo "📊 Container status:"
+            docker-compose ps
+
+            # Cleanup old images
+            echo "🧹 Cleaning up..."
+            docker image prune -f
+
+            echo "🎉 Deployment complete!"

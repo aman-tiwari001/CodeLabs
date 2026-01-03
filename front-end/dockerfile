@@ -8,6 +8,8 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci && npm cache clean --force
 
+COPY .env .env
+
 # Copy source code
 COPY . .
 
@@ -17,5 +19,5 @@ RUN npm run build
 # Expose port
 EXPOSE 5173
 
-# Start nginx
-CMD ["npm", "run", "dev"]
+# Start frontend server
+CMD ["npm", "run", "start"]

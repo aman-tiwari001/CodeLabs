@@ -2,30 +2,39 @@ version: '3.8'
 
 services:
   frontend:
-    build:
-      context: ./front-end
-      dockerfile: dockerfile
+    image: amantiwari001/codelabs-frontend:latest
+    # build:
+    #   context: ./front-end
+    #   dockerfile: dockerfile
     ports:
       - '5173:5173'
-    environment:
-      - NODE_ENV=development
+    env_file:
+      - ./front-end/.env
     networks:
       - app-network
     depends_on:
       - backend
+    restart: unless-stopped
 
   backend:
-    build:
-      context: ./back-end
-      dockerfile: dockerfile
+    image: amantiwari001/codelabs-backend:latest
+    # build:
+    #   context: ./back-end
+    #   dockerfile: dockerfile
     ports:
       - '5000:5000'
-    environment:
-      - NODE_ENV=production
+    env_file:
+      - ./back-end/.env
     volumes:
       - ./user-projects:/app/user-projects
+      - /var/run/docker.sock:/var/run/docker.sock
+    # environment:
+    #   - HOST_USER_PROJECTS_PATH=${PWD}/user-projects
+    environment:
+      - HOST_USER_PROJECTS_PATH=/home/amana/codelabs/user-projects
     networks:
       - app-network
+    restart: unless-stopped
 
 networks:
   app-network:

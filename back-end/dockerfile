@@ -17,16 +17,16 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Create a non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S -u 1001 -G nodejs nodejs
+# # Create a non-root user
+# RUN addgroup -g 1001 -S nodejs && \
+#     adduser -S -u 1001 -G nodejs nodejs
 
-# Create user-projects directory and set permissions
-RUN mkdir -p /app/user-projects && \
-    chown -R nodejs:nodejs /app
+# # Create user-projects directory and set permissions
+# RUN mkdir -p /app/user-projects && \
+#     chown -R nodejs:nodejs /app
 
-# Switch to non-root user
-USER nodejs
+# # Switch to non-root user
+# USER nodejs
 
 # Expose port
 EXPOSE 5000
