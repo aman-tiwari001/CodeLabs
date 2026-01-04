@@ -1,11 +1,9 @@
 import admin from 'firebase-admin';
-import { initializeApp, ServiceAccount } from 'firebase-admin/app';
+import { initializeApp } from 'firebase-admin/app';
 import path from 'path';
 import fs from 'fs';
 
-const serviceAccount: ServiceAccount = JSON.parse(
-	process.env.FB_SECRETS_JSON || '{}'
-);
+const serviceAccount = JSON.parse(process.env.FB_SECRETS_JSON || '{}');
 
 if (Object.keys(serviceAccount).length === 0) {
 	console.error('Firebase credentials are not set in environment variables.');
@@ -21,7 +19,10 @@ const firebaseConfig = {
 	messagingSenderId: process.env.messagingSenderId,
 	appId: process.env.appId,
 	measurementId: process.env.measurementId,
-	credential: admin.credential.cert(serviceAccount as ServiceAccount),
+	credential: admin.credential.cert({
+		...serviceAccount,
+		private_key: serviceAccount.private_key.replace(/\\n/g, '\n'),
+	}),
 };
 
 const app = initializeApp(firebaseConfig);
