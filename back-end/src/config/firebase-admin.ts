@@ -1,8 +1,17 @@
 import admin from 'firebase-admin';
 import { initializeApp, ServiceAccount } from 'firebase-admin/app';
-import serviceAccount from './fb_secrets.json';
 import path from 'path';
 import fs from 'fs';
+
+const serviceAccount: ServiceAccount = JSON.parse(
+	process.env.FB_SECRETS_JSON || '{}'
+);
+
+if (Object.keys(serviceAccount).length === 0) {
+	console.error('Firebase credentials are not set in environment variables.');
+	console.error('Exiting application...');
+	process.exit(1);
+}
 
 const firebaseConfig = {
 	apiKey: process.env.apiKey,

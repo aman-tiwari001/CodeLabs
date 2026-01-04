@@ -1,8 +1,17 @@
 const admin = require("firebase-admin");
-const serviceAccount = require("./fb_secrets.json");
 const { initializeApp } = require("firebase-admin/app");
 const fs = require("fs");
 const path = require("path");
+
+const serviceAccount = JSON.parse(
+  process.env.FB_SECRETS_JSON || '{}'
+);
+
+if (Object.keys(serviceAccount).length === 0) {
+  console.error('Firebase credentials are not set in environment variables.');
+  console.error('Exiting application...');
+  process.exit(1);
+}
 
 const firebaseConfig = {
   apiKey: process.env.apiKey,
