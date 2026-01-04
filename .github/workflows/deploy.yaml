@@ -4,19 +4,17 @@ name: Deploy CodeLabs to GCP VM (Docker CI/CD)
 on:
   push:
     branches: [main]
-  workflow_dispatch: # NEW: Allows manual trigger from GitHub UI (useful for re-deploys)
-
+  workflow_dispatch: # NEW: Allows manual trigger from GitHub UI
 # GLOBAL VARIABLES: Available to all jobs
 env:
   FRONTEND_IMAGE: amantiwari001/codelabs-frontend
   BACKEND_IMAGE: amantiwari001/codelabs-backend
-  # CHANGE: Hardcoded your Docker Hub username (replace if different)
 
 jobs:
   # =============================================
   # JOB 1: BUILD AND PUSH DOCKER IMAGES
   # =============================================
-  # NEW: Build Docker images and push to Docker Hub
+  # Build Docker images and push to Docker Hub
   # WHY: Images are portable, no need to install Node/npm on VM
   build-and-push:
     name: Build & Push Docker Images
@@ -28,21 +26,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # NEW: Setup Docker Buildx
+      # Setup Docker Buildx
       # WHY: Enables build caching, faster subsequent builds
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # NEW: Login to Docker Hub
-      # WHY: Need authentication to push images
+      # Login to Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # NEW: Build and push Frontend image
-      # WHY: Creates portable image with app baked in
+      # Build and push Frontend image
       - name: Build and Push Frontend
         uses: docker/build-push-action@v5
         with:
@@ -55,14 +51,14 @@ jobs:
           # latest = easy to pull, sha = enables rollback
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # WHY: Caches layers, 2nd build is much faster
+          # Caches layers, 2nd build is much faster
           build-args: |
             VITE_SERVER_URL=${{ secrets.VITE_SERVER_URL }}
             VITE_AUTH0_DOMAIN=${{ secrets.VITE_AUTH0_DOMAIN }}
             VITE_AUTH0_CLIENT_ID=${{ secrets.VITE_AUTH0_CLIENT_ID }}
             VITE_REDIRECT_URI=${{ secrets.VITE_REDIRECT_URI }}
 
-      # NEW: Build and push Backend image
+      # Build and push Backend image
       - name: Build and Push Backend
         uses: docker/build-push-action@v5
         with:
@@ -80,7 +76,7 @@ jobs:
   # =============================================
   deploy:
     name: Deploy to GCP VM
-    needs: build-and-push # NEW: Wait for images to be ready
+    needs: build-and-push # Wait for images to be ready
     runs-on: ubuntu-latest
 
     steps:
@@ -88,8 +84,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # NEW: Copy docker-compose file to VM
-      # WHY: VM needs to know how to run the containers
+      # Copy docker-compose file to VM
       - name: Copy docker-compose to VM
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -112,51 +107,25 @@ jobs:
             echo "🚀 Starting deployment..."
             cd ~/codelabs
 
-            # ----------------------------------------
-            # NEW: No git needed - images contain everything
-            # WHY: Faster, cleaner, no git credentials on VM
-            # ----------------------------------------
-
-            # ----------------------------------------
-            # NEW: docker-compose down
-            # WHY: Using Docker instead of PM2
-            # ----------------------------------------
-
-            # ----------------------------------------
-            # NEW: docker pull (pre-built images)
-            # WHY: No Node.js needed on VM, much faster
-            # ----------------------------------------
-
             # Login to Docker Hub
             echo "🔐 Logging into Docker Hub..."
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-            # Pull latest images (fast - only downloads changed layers)
+            # Pull latest images (fast - only downloads changed layers, pre-built images)
             echo "📥 Pulling latest images..."
-            docker-compose pull
+            docker compose pull
 
             # Stop old containers
             echo "🛑 Stopping old containers..."
-            docker-compose down || true
+            docker compose down || true
 
             # Start new containers
             echo "✅ Starting new containers..."
-            docker-compose up -d
-
-            # ----------------------------------------
-            # NEW: docker-compose up -d
-            # WHY: Docker manages the processes now
-            # ----------------------------------------
-
-            # ----------------------------------------
-            # NEW: Not needed - frontend container serves itself
-            # WHY: Nginx was for serving static files, 
-            #      now frontend container does that
-            # ----------------------------------------
+            docker compose up -d
 
             # Show status
             echo "📊 Container status:"
-            docker-compose ps
+            docker compose ps
 
             # Cleanup old images
             echo "🧹 Cleaning up..."
