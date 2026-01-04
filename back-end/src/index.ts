@@ -7,7 +7,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import connectDB from './config/db';
 import { handleAuth } from './controller/user';
-import { getAllProjects, initializeProject } from './controller/project';
+import { deleteProject, getAllProjects, initializeProject } from './controller/project';
 import { socketController } from './controller/socketController';
 import { setCookie } from './middleware/setCookie';
 import { verifyJWT } from './middleware/verifyJWT';
@@ -39,7 +39,7 @@ app.use(
 			'https://www.code-labs.tech',
 			'http://localhost:5173',
 		],
-		methods: ['GET', 'POST'],
+		methods: ['GET', 'POST', 'DELETE'],
 		credentials: true,
 	})
 );
@@ -68,6 +68,7 @@ app.get('/health', (_, res: Response) => {
 app.post('/api/auth', verifyJWT, setCookie, handleAuth);
 app.post('/api/project', verifyJWT, initializeProject);
 app.get('/api/projects', verifyJWT, getAllProjects);
+app.delete('/api/project/:projectId', verifyJWT, deleteProject);
 app.post('/api/ai/ask', verifyJWT, askAI);
 
 // 404 Not Found handler

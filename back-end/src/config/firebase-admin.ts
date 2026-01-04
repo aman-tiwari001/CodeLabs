@@ -135,6 +135,19 @@ export const deleteFileFromBucket = async (
 	}
 };
 
+// recursively delete all files in a directory in the bucket
+export const deleteFolderFromBucket = async (folderPath: string) => {
+	try {
+		console.log(`Deleting folder: ${folderPath}`);
+		const [files] = await bucket.getFiles({ prefix: folderPath });
+		const deletePromises = files.map((file) => file.delete());
+		await Promise.all(deletePromises);
+		console.log(`Recursively deleted all files in folder: ${folderPath}`);
+	} catch (error) {
+		console.error('Error deleting folder:', error);
+	}
+};
+
 export const renameFileInBucket = async (
 	filePath: string,
 	newPath: string,

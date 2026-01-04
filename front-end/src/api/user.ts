@@ -1,32 +1,37 @@
-import axiosInstance from "./axios-config";
+import axiosInstance from './axios-config';
 
 export interface UserType {
-  name: string;
-  email: string;
-  picture: string;
-  sub: string;
-  authToken: string;
+	name: string;
+	email: string;
+	picture: string;
+	sub: string;
+	authToken: string;
 }
 
 export interface ProjectType {
-  name: string;
-  techStack: string;
-  createdAt: Date;
+	name: string;
+	techStack: string;
+	createdAt: Date;
 }
 
 export const syncUserWithDB = async (userData: UserType) => {
-  const res = await axiosInstance.post("/api/auth", userData, {
-    headers: { Authorization: "Bearer " + userData.authToken },
-  });
-  return res.data;
+	const res = await axiosInstance.post('/api/auth', userData, {
+		headers: { Authorization: 'Bearer ' + userData.authToken },
+	});
+	return res.data;
 };
 
 export const createProject = async (projectData: ProjectType) => {
-  const res = await axiosInstance.post("/api/project", projectData);
-  return res.data;
+	const res = await axiosInstance.post('/api/project', projectData);
+	return res.data;
 };
 
 export const getAllProjects = async () => {
-  const res = await axiosInstance.get("/api/projects");
-  return res.data;
+	const res = await axiosInstance.get('/api/projects');
+	return res.data;
+};
+
+export const deleteProject = async (projectName: string) => {
+	const res = await axiosInstance.delete(`/api/project/${projectName}`);
+	return res.data;
 };

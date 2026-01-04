@@ -54,6 +54,10 @@ const ALLOWED_COMMANDS = [
 	'head',
 	'tail',
 	'history',
+	'y',
+	'yes',
+	'n',
+	'no',
 ];
 
 // Validate command
@@ -69,7 +73,7 @@ export function validateCommand(cmd: string) {
 		const parts = trimmedCmd.split('&&').map((part) => part.trim());
 		return parts.every((part) => {
 			const baseCommand = part.split(' ')[0];
-			return ALLOWED_COMMANDS.includes(baseCommand);
+			return ALLOWED_COMMANDS.includes(baseCommand.toLowerCase());
 		});
 	}
 

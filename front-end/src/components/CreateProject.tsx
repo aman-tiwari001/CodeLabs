@@ -32,7 +32,7 @@ const CreateProject = ({ setShowCreateProject }: CreateProjectProps) => {
     }
   };
   return (
-    <section className="fixed z-20 top-0 inset-0 left-0 w-screen flex justify-center backdrop-brightness-[0.2] items-center h-screen ">
+    <section className="fixed z-20 top-0 inset-0 left-0 w-screen flex justify-center backdrop-blur-xl items-center h-screen ">
       <motion.div
         className="rounded-xl shadow-md p-4 px-6 w-[40%] max-md:w-[95%] bg-gray-900"
         initial={{ opacity: 0, y: 20 }}
@@ -67,7 +67,7 @@ const CreateProject = ({ setShowCreateProject }: CreateProjectProps) => {
             }
             required
           />
-          <label htmlFor="techStack">Choose tech stack:</label>
+          <label htmlFor="techStack">Choose framework:</label>
           <select
             className="rounded-full px-3 py-3 text-md bg-gray-800"
             name="techStack"
@@ -81,9 +81,10 @@ const CreateProject = ({ setShowCreateProject }: CreateProjectProps) => {
             <option value="react">React</option>
             <option value="node">Node</option>
             <option value="express">Express</option>
-            {/* <option value="mern">MERN</option> */}
             <option value="nextjs">NextJS</option>
+            <option value="blank">Blank Project</option>
           </select>
+          <p className="text-[14px] text-gray-300">Choose blank project if you want to start from scratch.</p>
           <button
             type="submit"
             disabled={loading}
